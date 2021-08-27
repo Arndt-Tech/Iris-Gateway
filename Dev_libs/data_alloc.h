@@ -37,6 +37,29 @@
 #include <string.h>
 
 //==================================================================================//
+// enum's
+typedef enum //ALLOCATION
+{
+  ELEMENT_WITHOUT_ALLOCATION = 0,
+  NO_DATA_TO_ALLOCATE = 1,
+  ERROR_DURING_ALLOCATION = 2,
+  ELEMENT_SUCCESSFULLY_ALLOCATED = 3,
+}alc;
+
+typedef enum //REMOVAL
+{
+  EMPTY_ELEMENT = 0,
+  ELEMENT_SUCCESSFULLY_REMOVED = 1,
+}rem;
+
+typedef enum //RELEASE 
+{
+  ELEMENT_IS_ALREADY_RELEASED = 0,
+  ELEMENT_SUCCESSFULLY_RELEASED = 1,
+}rls;
+
+
+//==================================================================================//
 // Struct's
 typedef struct elem_idnt
 {
@@ -52,21 +75,17 @@ typedef struct elem_idnt
 // Protótipo de funções 
 void start_element(element *r);
 
-element *alloc_element(element *r, char *data);
+alc alloc_element(element *r, char *data);
+rem remove_element(element *addr);
+rem spec_removal(element *addr, unsigned int num);
+rls free_all(element *free_element);
 
-element **alloc_addr_array(int num0);
-
-element *remove_element(element *addr);
-
-element *spec_removal(element *addr, unsigned int num);
-
-element *free_all(element *free_element);
-
+char *read_addr_data(element *view);
 element *print_addr_data(element *view);
 
+element **alloc_addr_array(int num0);
+element **realloc_addr_array(element *addr);
 void shift_array(element *addr, int cursor);
-
-element **realloc_char_array(element *addr);
 
 
 
@@ -85,27 +104,23 @@ void start_element(element *r)
 
 //====================================//
 // alloc_element()
-element *alloc_element(element *r, char *data)
+alc alloc_element(element *r, char *data)
 {
-  if (r->addr_bank == NULL)
-  {
-  	printf("ERROR -> Element without allocation\n");
-  	system("PAUSE");
-  	return NULL;
-  }
-  element *new_element = NULL;
+  if (r->addr_bank == NULL)return ELEMENT_WITHOUT_ALLOCATION;
+  if (data[0] == 0x00)return NO_DATA_TO_ALLOCATE;
+  element *new_element = NULL; 
   int dataLen = strlen(data);
   dataLen += 1;
-  if((new_element = (element*)calloc(1, sizeof(element))) == NULL) return NULL;
-  if((new_element->data = (char*)calloc(dataLen, sizeof(char))) == NULL) return NULL;
+  if((new_element = (element*)calloc(1, sizeof(element))) == NULL) return ERROR_DURING_ALLOCATION;
+  if((new_element->data = (char*)calloc(dataLen, sizeof(char))) == NULL) return ERROR_DURING_ALLOCATION;
   strcpy(new_element->data, data);
   if(!r->amount)r->addr_bank[r->amount] = new_element;
+  r->data = new_element->data;
   r->first_addr = r->addr_bank[0];
   r->last_addr = new_element;
   r->addr_bank[r->amount] = r->last_addr;
   r->amount += 1;
-  printf("Data allocated in ADDR: 0x%x\n", &new_element->data);
-  return new_element;
+  return ELEMENT_SUCCESSFULLY_ALLOCATED;
 }
 
 //====================================//
@@ -120,44 +135,40 @@ element **alloc_addr_array(int num0)
 
 //====================================//
 // remove_element()
-element *remove_element(element *addr)
+rem remove_element(element *addr)
 {
   register int i = 0;
   if (addr->last_addr == NULL || addr->amount < 1) 
   {
   	addr->first_addr = NULL;
 	addr->last_addr = NULL;
-  	return NULL;
+  	return EMPTY_ELEMENT;
   }
   free(addr->last_addr);
   addr->addr_bank[addr->amount-1] = NULL;
   if (addr->amount == 1)addr->last_addr = addr->addr_bank[addr->amount-1];
   else addr->last_addr = addr->addr_bank[addr->amount-2];
   addr->amount -= 1;
-  putchar('\n');
-  printf("Memory successfully released!\n");
-  return NULL;
+  return ELEMENT_SUCCESSFULLY_REMOVED;
 }
 
 //====================================//
 // spec_removal()
-element *spec_removal(element *addr, unsigned int num)
+rem spec_removal(element *addr, unsigned int num)
 {
   register int i = 0;
-  if (addr->addr_bank[num] == NULL)return NULL;
+  if (addr->addr_bank[num] == NULL)return EMPTY_ELEMENT;
   free(addr->addr_bank[num]);
   shift_array(addr, num);
   addr->amount -= 1;
   if (!(addr->addr_bank[addr->amount] == NULL))free (addr->addr_bank[addr->amount]);
   if (!num)addr->last_addr = addr->addr_bank[addr->amount];
   else addr->last_addr = addr->addr_bank[addr->amount-1];
-  putchar('\n');
-  printf("Memory successfully released!\n");
-  return addr->addr_bank[num];
+  return ELEMENT_SUCCESSFULLY_REMOVED;
 }
 
 //====================================//
-// print_array()
+// print_addr_data()
 element *print_addr_data(element *view)
 {
   register int i = 0;	
@@ -172,8 +183,27 @@ element *print_addr_data(element *view)
 }
 
 //====================================//
+// read_addr_data()
+char *read_addr_data(element *view)
+{
+  register int i = 0;
+  
+  while (view->data[i] != 0)i++;
+  char str[i];
+  i = 0;
+  while (view->data[i] != 0)
+  {
+  	str[i] = view->data[i];
+  	i++;
+  }
+  str[i] = 0x00;
+  strcpy(view->data, str);
+  return view->data;
+}
+
+//====================================//
 // realloc_addr_array()
-element **realloc_char_array(element *addr)
+element **realloc_addr_array(element *addr)
 { 
   if (addr->amount < 1)return NULL;
   if ((addr->addr_bank = (element**)realloc(addr->addr_bank, (addr->amount*2) * sizeof(element*))) == NULL)return NULL;
@@ -182,22 +212,17 @@ element **realloc_char_array(element *addr)
 
 //====================================//
 // free_all()
-element *free_all(element *free_element)
+rls free_all(element *free_element)
 {
   register int i;
-  if (free_element->addr_bank == NULL)
-  {
-  	printf("\nElement is already clean!\n");
-  	return NULL;
-  }
+  if (free_element->addr_bank == NULL)return ELEMENT_IS_ALREADY_RELEASED;
   for(i = 0; i < free_element->amount; i++)free(free_element->addr_bank[i]);
   free_element->first_addr = NULL;
   free_element->last_addr  = NULL;
   free_element->amount = 0;
   free(free_element->addr_bank);
   free_element->addr_bank = NULL;
-  printf("\nSuccessfully cleaned element!\n");
-  return NULL;
+  return ELEMENT_SUCCESSFULLY_RELEASED;
 }
 
 //====================================//
