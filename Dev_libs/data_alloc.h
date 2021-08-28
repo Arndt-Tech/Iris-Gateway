@@ -19,8 +19,8 @@
   |----------------------------| 
   | Ler ou vizualizar elemento |
   |----------------------------| 
-   * Ler -> print_addr_data(elemento::element);      // Lê dados alocados em endereços de tipo element e printa no console;
-         -> 
+   * Ler -> print_addr_data(elemento.addr_bank[i]);  // Lê dados alocados em endereços de tipo element e printa no console;
+         -> read_addr_data (elemento.addr_bank[i]);  // Retorna os dados alocados no endereço(parametrizado) em formado de string;
           
   |------------------|  
   | Objetos legíveis |
