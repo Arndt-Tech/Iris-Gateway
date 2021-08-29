@@ -43,13 +43,17 @@ typedef enum //ALLOCATION
   ELEMENT_WITHOUT_ALLOCATION = 0,
   NO_DATA_TO_ALLOCATE = 1,
   ERROR_DURING_ALLOCATION = 2,
-  ELEMENT_SUCCESSFULLY_ALLOCATED = 3,
+  ERROR_DURING_RELOCATION = 3,
+  ELEMENT_SUCCESSFULLY_RELOCATED = 4,
+  ELEMENT_SUCCESSFULLY_ALLOCATED = 5,
+  UNRECOGNIZED_COMMAND = 8,
 }alc;
 
 typedef enum //REMOVAL
 {
   EMPTY_ELEMENT = 0,
-  ELEMENT_SUCCESSFULLY_REMOVED = 1,
+  ERROR_DURING_REMOVAL = 1,
+  ELEMENT_SUCCESSFULLY_REMOVED = 2,
 }rem;
 
 typedef enum //RELEASE 
@@ -63,11 +67,12 @@ typedef enum //RELEASE
 // Struct's
 typedef struct elem_idnt
 {
-  char   *data;
+  char     *data;
   struct elem_idnt  *first_addr;
-  struct elem_idnt  *last_addr;
+  struct elem_idnt   *last_addr;
   struct elem_idnt  **addr_bank;
-  int    amount;
+  int   bank_spc;
+  int     amount;
 }element;
 
 
@@ -84,7 +89,7 @@ char *read_addr_data(element *view);
 element *print_addr_data(element *view);
 
 element **alloc_addr_array(int num0);
-element **realloc_addr_array(element *addr);
+alc realloc_addr_array(element *addr, const char *cmd);
 void shift_array(element *addr, int cursor);
 
 
@@ -98,8 +103,9 @@ void start_element(element *r)
   r->data       = NULL;
   r->first_addr = NULL;
   r->last_addr  = NULL;
-  r->amount    = 0;
-  r->addr_bank = alloc_addr_array(20);
+  r->bank_spc  =  1;
+  r->amount    =  0;
+  r->addr_bank = alloc_addr_array(r->bank_spc);
 }
 
 //====================================//
@@ -120,6 +126,11 @@ alc alloc_element(element *r, char *data)
   r->last_addr = new_element;
   r->addr_bank[r->amount] = r->last_addr;
   r->amount += 1;
+  if (r->amount >= r->bank_spc)
+  {
+	if (realloc_addr_array(r, "UP") == ERROR_DURING_RELOCATION)return ERROR_DURING_RELOCATION;
+	else return ELEMENT_SUCCESSFULLY_ALLOCATED;
+  }
   return ELEMENT_SUCCESSFULLY_ALLOCATED;
 }
 
@@ -145,10 +156,14 @@ rem remove_element(element *addr)
   	return EMPTY_ELEMENT;
   }
   free(addr->last_addr);
-  addr->addr_bank[addr->amount-1] = NULL;
   if (addr->amount == 1)addr->last_addr = addr->addr_bank[addr->amount-1];
   else addr->last_addr = addr->addr_bank[addr->amount-2];
   addr->amount -= 1;
+  if (addr->amount <= addr->bank_spc-2)
+  {
+  	if (realloc_addr_array(addr, "DOWN") == ERROR_DURING_RELOCATION)return ERROR_DURING_REMOVAL;
+  	return ELEMENT_SUCCESSFULLY_REMOVED;
+  }
   return ELEMENT_SUCCESSFULLY_REMOVED;
 }
 
@@ -159,11 +174,16 @@ rem spec_removal(element *addr, unsigned int num)
   register int i = 0;
   if (addr->addr_bank[num] == NULL)return EMPTY_ELEMENT;
   free(addr->addr_bank[num]);
-  shift_array(addr, num);
+  if (num > addr->bank_spc)return EMPTY_ELEMENT;
+  if (!num)addr->last_addr = addr->addr_bank[addr->amount-1];
+  else addr->last_addr = addr->addr_bank[addr->amount-2];
   addr->amount -= 1;
-  if (!(addr->addr_bank[addr->amount] == NULL))free (addr->addr_bank[addr->amount]);
-  if (!num)addr->last_addr = addr->addr_bank[addr->amount];
-  else addr->last_addr = addr->addr_bank[addr->amount-1];
+  shift_array(addr, num);
+  if (addr->amount <= addr->bank_spc-2)
+  {
+  	if (realloc_addr_array(addr, "DOWN") == ERROR_DURING_RELOCATION)return ERROR_DURING_REMOVAL;
+  	return ELEMENT_SUCCESSFULLY_REMOVED;
+  }
   return ELEMENT_SUCCESSFULLY_REMOVED;
 }
 
@@ -203,11 +223,17 @@ char *read_addr_data(element *view)
 
 //====================================//
 // realloc_addr_array()
-element **realloc_addr_array(element *addr)
+alc realloc_addr_array(element *addr, const char *cmd)
 { 
-  if (addr->amount < 1)return NULL;
-  if ((addr->addr_bank = (element**)realloc(addr->addr_bank, (addr->amount*2) * sizeof(element*))) == NULL)return NULL;
-  return addr->addr_bank;
+  register int i;
+  if (addr->bank_spc < 1)return ERROR_DURING_RELOCATION;
+  element new_bank;
+  addr->bank_spc = addr->amount + 1;
+  if((new_bank.addr_bank = (element**)calloc(addr->bank_spc, sizeof(element*))) == NULL)return ERROR_DURING_RELOCATION;
+  for (i = 0; i < addr->amount; i++) new_bank.addr_bank[i] = addr->addr_bank[i];
+  free(addr->addr_bank);
+  addr->addr_bank = new_bank.addr_bank;
+  return ELEMENT_SUCCESSFULLY_RELOCATED;
 }
 
 //====================================//
@@ -219,7 +245,8 @@ rls free_all(element *free_element)
   for(i = 0; i < free_element->amount; i++)free(free_element->addr_bank[i]);
   free_element->first_addr = NULL;
   free_element->last_addr  = NULL;
-  free_element->amount = 0;
+  free_element->bank_spc  = 0;
+  free_element->amount    = 0;
   free(free_element->addr_bank);
   free_element->addr_bank = NULL;
   return ELEMENT_SUCCESSFULLY_RELEASED;
@@ -230,8 +257,7 @@ rls free_all(element *free_element)
 void shift_array(element *addr, int cursor)
 {
   register int i;
-  for (i = addr->amount*2; i > addr->amount; i--)
-    addr->addr_bank[((2*addr->amount)-i) + cursor] = addr->addr_bank[(((2*addr->amount)+1)-i) + cursor];
+  for (i = cursor; i < addr->amount; i++)addr->addr_bank[i] = addr->addr_bank[i+1];
 }
 
 #endif
