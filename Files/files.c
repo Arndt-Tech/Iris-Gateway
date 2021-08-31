@@ -58,6 +58,7 @@ int main()
   	  case '1':
   	  	printf("Escreva algo no arquivo\n");
         gets(string);
+        write_file(arq, string);
   	  break;
   	  
   	  
