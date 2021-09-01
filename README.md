@@ -126,10 +126,11 @@ Abaixo, segue a enumeração das causas de reinicialização do GateIRIS:
 
 |    |           DESCRIÇÃO           |
 |:--:|:-----------------------------:|
-| 1. | Endereço do dispositivo local |
-| 2. |      Endereço do receptor     |
-| 3. |       Tamanho dos dados       |
-| 4. |             Dados             |
+| 1. | Endereço do dispositivo local.|
+| 2. | Endereço do receptor.         |
+| 3. | Tamanho dos dados.            |
+| 4. | Dados.                        |
+| 5. | Fim do pacote.                |
 > Tabela 4.
 
 
