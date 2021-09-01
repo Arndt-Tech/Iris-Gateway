@@ -107,7 +107,7 @@ cfg clear_file(arqv *fl)
   	free(fl->data);
   	fl->data = NULL;
   }
-  fwrite(0x00, sizeof(char), 1, fl->file);
+  fwrite("", sizeof(char), 1, fl->file);
   len_fl(fl);
   fclose (fl->file);
   return SUCCESSFULLY_CLEANED_FILE ;
