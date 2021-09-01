@@ -15,13 +15,13 @@ typedef enum  // Criar/Abrir/Renomear
   ERROR_TO_OPEN_FILE = 0,
   FILE_OPENED_SUCCESSFULLY = 1,
   ERROR_TO_REOPEN_FILE = 2,
-  SUCCESSFULLY_CLEANED_FILE = 4,
-  WRITING_ERROR_IN_THE_FILE  = 5,
-  WRITING_UNFINISHED = 6,
-  SUCCESSFUL_WRITTEN_FILE  = 7,
-  ERROR_READING_FILE_SIZE = 8,
-  READING_PERFORMED_SUCCESSFULLY = 9,
-  SUCCESSFUL_REMOVAL = 10,
+  SUCCESSFULLY_CLEANED_FILE = 3,
+  WRITING_ERROR_IN_THE_FILE  = 4,
+  WRITING_UNFINISHED = 5,
+  SUCCESSFUL_WRITTEN_FILE  = 6,
+  ERROR_READING_FILE_SIZE = 7,
+  READING_PERFORMED_SUCCESSFULLY = 8,
+  SUCCESSFUL_REMOVAL = 9,
 }cfg;
 
 
@@ -45,9 +45,6 @@ cfg open_file(arqv *fl, const char *name);
 char *read_data_file(arqv *fl, int cur_set);
 cfg write_string(arqv *fl, char *str);
 cfg clear_file(arqv *fl);
-
-int length_file(arqv *fl);
-
 cfg len_fl(arqv *fl);
 
 
@@ -159,13 +156,13 @@ cfg len_fl(arqv *fl)
   if (fseek(fl->file, 0, SEEK_END) != 0)return ERROR_READING_FILE_SIZE;
   fl->file_len = ftell(fl->file);
   if (fl->file_len == -1)return ERROR_READING_FILE_SIZE;
-  
+  if (fl->file_len < 1) fl->amount_data = 0;
   fl->file_len -= 1;
   rewind(fl->file);
   while (!feof(fl->file))
   {
-  	c = fgetc(fl->file);
-  	if (c == 0x00)amount_file += 1;
+   c = fgetc(fl->file);
+   if (c == 0x00)amount_file += 1;
   }
   amount_file -= 1;
   fl->amount_data = amount_file;
