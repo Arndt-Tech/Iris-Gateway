@@ -20,7 +20,8 @@
   | Ler ou vizualizar elemento |
   |----------------------------| 
    * Ler -> print_addr_data(elemento.addr_bank[i]);  // Lê dados alocados em endereços de tipo element e printa no console;
-         -> read_addr_data (elemento.addr_bank[i]);  // Retorna os dados alocados no endereço(parametrizado) em formado de string;
+         -> read_addr_data(elemento.addr_bank[i]);   // Retorna os dados alocados no endereço(parametrizado) em formado de string;
+         -> seek_addr(&elemento, dado);              // Retora o endereço que o dado está alocado;
           
   |------------------|  
   | Objetos legíveis |
@@ -28,7 +29,8 @@
    * element::addr_bank             // Banco onde guarda endereços dos elementos;
               first_addr            // Primeiro elemento do banco de endereços;
               last_addr             // Último elemento do banco de endereços;
-			  amount                // Quantidade de elementos alocados;
+              amount                // Quantidade de elementos alocados;
+              data                  // Último dado lido;
 */
 //==================================================================================//
 // Inclusões 
@@ -38,28 +40,25 @@
 
 //==================================================================================//
 // enum's
-typedef enum //ALLOCATION
+typedef enum 
 {
+  // ALLOCATION
   ELEMENT_WITHOUT_ALLOCATION = 0,
   NO_DATA_TO_ALLOCATE = 1,
   ERROR_DURING_ALLOCATION = 2,
   ERROR_DURING_RELOCATION = 3,
   ELEMENT_SUCCESSFULLY_RELOCATED = 4,
   ELEMENT_SUCCESSFULLY_ALLOCATED = 5,
-}alc;
-
-typedef enum //REMOVAL
-{
-  ELEMENT_NOT_FOUND  = 0,
-  ERROR_DURING_REMOVAL = 1,
-  ELEMENT_SUCCESSFULLY_REMOVED = 2,
-}rem;
-
-typedef enum //RELEASE 
-{
-  ELEMENT_IS_ALREADY_RELEASED = 0,
-  ELEMENT_SUCCESSFULLY_RELEASED = 1,
-}rls;
+  ERROR_DURING_BANK_ALLOCATION = 6,
+  BANK_SUCCESSFULLY_ALLOCATED = 7,
+  // REMOVE
+  ELEMENT_NOT_FOUND  = 20,
+  ERROR_DURING_REMOVAL = 21,
+  ELEMENT_SUCCESSFULLY_REMOVED = 22,
+  // RELEASE 
+  ELEMENT_IS_ALREADY_RELEASED = 40,
+  ELEMENT_SUCCESSFULLY_RELEASED = 41,
+}malc;
 
 
 //==================================================================================//
@@ -77,18 +76,19 @@ typedef struct elem_idnt
 
 //==================================================================================//
 // Protótipo de funções 
-void start_element(element *r);
+malc start_element(element *elm);
 
-alc alloc_element(element *r, char *data);
-rem remove_element(element *addr);
-rem spec_removal(element *addr, unsigned int num);
-rls free_all(element *free_element);
+malc alloc_element(element *elm, char *data);
+malc remove_element(element *addr);
+malc spec_removal(element *addr, unsigned int num);
+malc free_all(element *free_element);
 
 char *read_addr_data(element *view);
 element *print_addr_data(element *view);
+char *seek_addr(element *elm, char *data);
 
 element **alloc_addr_array(int num0);
-alc realloc_addr_array(element *addr);
+malc realloc_addr_array(element *addr);
 void shift_array(element *addr, int cursor);
 
 
@@ -97,21 +97,22 @@ void shift_array(element *addr, int cursor);
 // Desenvolvimento de funções
 //====================================//
 // start_element()
-void start_element(element *r)
+malc start_element(element *elm)
 {
-  r->data       = NULL;
-  r->first_addr = NULL;
-  r->last_addr  = NULL;
-  r->bank_spc  =  1;
-  r->amount    =  0;
-  r->addr_bank = alloc_addr_array(r->bank_spc);
+  elm->data       = NULL;
+  elm->first_addr = NULL;
+  elm->last_addr  = NULL;
+  elm->bank_spc  =  1;
+  elm->amount    =  0;
+  if ((elm->addr_bank = alloc_addr_array(elm->bank_spc)) == NULL)return ERROR_DURING_BANK_ALLOCATION;
+  return BANK_SUCCESSFULLY_ALLOCATED;
 }
 
 //====================================//
 // alloc_element()
-alc alloc_element(element *r, char *data)
+malc alloc_element(element *elm, char *data)
 {
-  if (r->addr_bank == NULL)return ELEMENT_WITHOUT_ALLOCATION;
+  if (elm->addr_bank == NULL)return ELEMENT_WITHOUT_ALLOCATION;
   if (data[0] == 0x00)return NO_DATA_TO_ALLOCATE;
   element *new_element = NULL; 
   int dataLen = strlen(data);
@@ -119,33 +120,23 @@ alc alloc_element(element *r, char *data)
   if((new_element = (element*)calloc(1, sizeof(element))) == NULL) return ERROR_DURING_ALLOCATION;
   if((new_element->data = (char*)calloc(dataLen, sizeof(char))) == NULL) return ERROR_DURING_ALLOCATION;
   strcpy(new_element->data, data);
-  if(!r->amount)r->addr_bank[r->amount] = new_element;
-  r->data = new_element->data;
-  r->first_addr = r->addr_bank[0];
-  r->last_addr = new_element;
-  r->addr_bank[r->amount] = r->last_addr;
-  r->amount += 1;
-  if (r->amount >= r->bank_spc)
+  if(!elm->amount)elm->addr_bank[elm->amount] = new_element;
+  elm->data = new_element->data;
+  elm->first_addr = elm->addr_bank[0];
+  elm->last_addr = new_element;
+  elm->addr_bank[elm->amount] = elm->last_addr;
+  elm->amount += 1;
+  if (elm->amount >= elm->bank_spc)
   {
-	if (realloc_addr_array(r) == ERROR_DURING_RELOCATION)return ERROR_DURING_RELOCATION;
+	if (realloc_addr_array(elm) == ERROR_DURING_RELOCATION)return ERROR_DURING_RELOCATION;
 	else return ELEMENT_SUCCESSFULLY_ALLOCATED;
   }
   return ELEMENT_SUCCESSFULLY_ALLOCATED;
 }
 
 //====================================//
-// alloc_addr_array()
-element **alloc_addr_array(int num0)
-{
-  element **ptr = NULL;
-  if (num0 < 1) return NULL;
-  if ((ptr = (element**)calloc(num0, sizeof(element*))) == NULL)return NULL;
-  return ptr;
-}
-
-//====================================//
 // remove_element()
-rem remove_element(element *addr)
+malc remove_element(element *addr)
 {
   register int i = 0;
   if (addr->last_addr == NULL || addr->amount < 1) 
@@ -169,7 +160,7 @@ rem remove_element(element *addr)
 
 //====================================//
 // spec_removal()
-rem spec_removal(element *addr, unsigned int num)
+malc spec_removal(element *addr, unsigned int num)
 {
   register int i = 0;
   if (addr->addr_bank[num] == NULL)return ELEMENT_NOT_FOUND;
@@ -223,23 +214,8 @@ char *read_addr_data(element *view)
 }
 
 //====================================//
-// realloc_addr_array()
-alc realloc_addr_array(element *addr)
-{ 
-  register int i;
-  if (addr->bank_spc < 1)return ERROR_DURING_RELOCATION;
-  element new_bank;
-  addr->bank_spc = addr->amount + 1;
-  if((new_bank.addr_bank = (element**)calloc(addr->bank_spc, sizeof(element*))) == NULL)return ERROR_DURING_RELOCATION;
-  for (i = 0; i < addr->amount; i++) new_bank.addr_bank[i] = addr->addr_bank[i];
-  free(addr->addr_bank);
-  addr->addr_bank = new_bank.addr_bank;
-  return ELEMENT_SUCCESSFULLY_RELOCATED;
-}
-
-//====================================//
 // free_all()
-rls free_all(element *free_element)
+malc free_all(element *free_element)
 {
   register int i;
   if (free_element->addr_bank == NULL)return ELEMENT_IS_ALREADY_RELEASED;
@@ -251,6 +227,31 @@ rls free_all(element *free_element)
   free(free_element->addr_bank);
   free_element->addr_bank = NULL;
   return ELEMENT_SUCCESSFULLY_RELEASED;
+}
+
+//====================================//
+// alloc_addr_array()
+element **alloc_addr_array(int num0)
+{
+  element **ptr = NULL;
+  if (num0 < 1) return NULL;
+  if ((ptr = (element**)calloc(num0, sizeof(element*))) == NULL)return NULL;
+  return ptr;
+}
+
+//====================================//
+// realloc_addr_array()
+malc realloc_addr_array(element *addr)
+{ 
+  register int i;
+  if (addr->bank_spc < 1)return ERROR_DURING_RELOCATION;
+  element new_bank;
+  addr->bank_spc = addr->amount + 1;
+  if((new_bank.addr_bank = (element**)calloc(addr->bank_spc, sizeof(element*))) == NULL)return ERROR_DURING_RELOCATION;
+  for (i = 0; i < addr->amount; i++) new_bank.addr_bank[i] = addr->addr_bank[i];
+  free(addr->addr_bank);
+  addr->addr_bank = new_bank.addr_bank;
+  return ELEMENT_SUCCESSFULLY_RELOCATED;
 }
 
 //====================================//
