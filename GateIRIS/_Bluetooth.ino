@@ -1,3 +1,4 @@
+// Inclusões
 #include "_Bluetooth.h"
 
 //-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
@@ -165,7 +166,7 @@ void waitingPASSWORD_WIFI()  // Espera clientAPP enviar PASSWORD
 
 
 //-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
-void writeBT(String dados)
+String writeBT(String dados)
 {
   unsigned long timeBT;
   if (connectedBT)
@@ -176,6 +177,7 @@ void writeBT(String dados)
       characteristic_TX->notify();
       timeBT = millis();
     }
+    return dados;
   }
 }
 
@@ -269,15 +271,14 @@ void getIDs_Firebase() // Recebe ID's via bluetooth
   USER_ID_STR = getData();
   Serial.println ("USER_ID: " + String (USER_ID_STR));
   
-  Serial.println ("STATION_ID");
-  writeBT("*");    // Pode enviar ID de estação
-  STATION_ID_STR = getData();
-  Serial.println ("STATION_ID: " + String (STATION_ID_STR));
-
+  Serial.println ("Enviando chipID:  " + String(getChipID()));
+  STATION_ID_STR = (writeBT(String(getChipID())));
+  
   writeEEPROM_String(USER_ID_STR.c_str(), addr_IDuser_min);
   writeEEPROM_String(STATION_ID_STR.c_str(), addr_IDstation_min);
   delay (100);
 }
+
 
 
 
@@ -308,16 +309,4 @@ void bluetoothConfig()
   waitingREQUEST(); 
   
   //  Fim das configurações bluetooth
-}
-
-
-void reInitBT()
-{
-  BLEDevice::init(randomize_ID_BT().c_str());
-  
-  // Inicia propagação do dispositivo
-  BLEDevice::startAdvertising();
-
-  // Inicia REQUESTS
-  //bluetoothConfig();
 }

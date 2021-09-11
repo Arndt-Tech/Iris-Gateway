@@ -17,7 +17,7 @@
   #define addr_IDuser_max    110  // Endereço máximo da string SSID
 
   #define addr_IDstation_min 120  // Endereço mínimo da string PASSWORD
-  #define addr_IDstation_max 150  // Endereço máximo da string PASSWORD
+  #define addr_IDstation_max 130  // Endereço máximo da string PASSWORD
 
   #define addr_rstCause 160   // Endereços onde são guardados os números das últimas causas de reset.
 

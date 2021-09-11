@@ -11,6 +11,7 @@
   #define valveID   "/Users/" + USER_ID_STR + "/Estacao/" + STATION_ID_STR + "/Status/" + "/StatusApp"
   #define  tempID   "/Users/" + USER_ID_STR + "/Estacao/" + STATION_ID_STR + "/Dados/" + "/Temperatura"
   #define  umidID   "/Users/" + USER_ID_STR + "/Estacao/" + STATION_ID_STR + "/Dados/" + "/Umidade"
+  #define centerID  "/Users/" + USER_ID_STR + "/Gateway/" + STATION_ID_STR + "/Station/"
   #define debugID   "/Users/Lco9IpTQPTZhwnCjz4xmFBwwgUt1/Estacao/-MdmxU2TikF-dX9Fcxct/Status/StatusApp"
 
 // Firebase

@@ -10,13 +10,14 @@
   #include "_Firebase.h"
   #include "_multiCore.h"
   #include "_specialFunctions.h"
+  #include "chipID.h"
   
 //-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|  
 void setup() 
 { 
   // Inicia Dispositivo
   configBegin();
-  //clearEEPROM(0, EEPROM_SIZE);
+  clearEEPROM(0, EEPROM_SIZE);
 
   // Inicia SSD1306
   setupOLED();

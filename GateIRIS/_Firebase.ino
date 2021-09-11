@@ -3,10 +3,8 @@
 //-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
 void setupFirebase()
 {
-  estacao = String(debugID);
-  //temperatura = String (tempID);
-  //umidade = String (umidID);
-   
+  estacao = String(centerID);
+  
   Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
   Firebase.reconnectWiFi(true);
   

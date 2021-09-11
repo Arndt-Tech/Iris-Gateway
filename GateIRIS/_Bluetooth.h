@@ -33,7 +33,7 @@
   String readBT();             // Recebe dados sem callback
 
   // ENVIO DE DADOS BT
-  void writeBT(String dados);  // envia dados via bluetooth
+  String writeBT(String dados);  // envia dados via bluetooth
 
   // CONEXÃO BT
   void waitingBT();            // Aguarda bluetooth conectar
