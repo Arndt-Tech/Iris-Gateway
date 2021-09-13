@@ -83,14 +83,14 @@ Segue um código de exemplo mostrando mais detalhes sobre os procedimentos de co
 -------------------------------------------------------------------------------
 #### FLAGS DE COMUNICAÇÃO
 Para que as funções apresentadas funcionem corretamente, foram definidas as seguintes *flags*:
-|  FLAG | DESCRIÇÃO                              |
-|:-----:|----------------------------------------|
-| ‘ / ’ | APP pode enviar o ID de usuário        |
-| ‘ * ’ | APP pode enviar o ID da estação        |
-| ‘ ~ ’ | APP pode enviar o SSID da rede         |
-| ‘ ^ ’ | APP pode enviar a senha da rede        |
-| ‘ ! ’ | Não foi possível conectar no WIFI      |
-| ‘ & ’ | IRIS foi conectada no WIFI com sucesso |
+|  FLAG | DESCRIÇÃO                                |
+|:-----:|------------------------------------------|
+|  *@*  | *Início da comunicação*                  |
+|  */*  | *APP pode enviar o ID de usuário*        |
+|  *~*  | *APP pode enviar o SSID da rede*         |
+|  *^*  | *APP pode enviar a senha da rede*        |
+|  *!*  | *Não foi possível conectar no WIFI*      |
+|  *&*  | *IRIS foi conectada no WIFI com sucesso* |
 > Tabela 1.
 
 -------------------------------------------------------------------------------
