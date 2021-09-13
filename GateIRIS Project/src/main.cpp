@@ -8,17 +8,9 @@
 #include "_LoRa.h"
 #include "multiCore.h"
 #include "specialFunc.h"
-#include "chipID.h"
+#include "chipID.h"  
 
-networkLora gateway;
-networkWiFi net;    
 
-/*
-
-net.ssid
-net.password
-
-*/
 
 void setup() 
 {

@@ -110,7 +110,7 @@ void waitingSYNC() // Aguarda sincronização da comunicação
 {
   String sync = "";
   Serial.println("Aguardando sincronização...");
-  while (sync != "@")
+  while (sync != SYNC_FLAG)
   {
     refreshConnectionBT();
     sync = getData();
@@ -242,14 +242,4 @@ void bleDisable()
   esp_bt_controller_disable();
   esp_bt_controller_deinit();
   esp_bt_mem_release(ESP_BT_MODE_BTDM);
-}
-
-void getID(networkLora *gtw)
-{
-  writeBT("|");
-  gtw->destAddr = atol(getData().c_str());
-  gtw->localAddr = atol(writeBT(String(getChipID())).c_str());
-  Serial.println("Chip ID: " + String(gtw->localAddr));
-  delay(1000);
-  writeBT("&");
 }

@@ -22,7 +22,6 @@ bool connectWifi(networkWiFi *wifi)
       t++;
       if (t > 12)
         return 0;
-
       connectWifi = millis();
     }
   }

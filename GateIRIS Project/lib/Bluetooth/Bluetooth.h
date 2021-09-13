@@ -18,17 +18,25 @@
 #include "_WiFi.h"
 #include "chipID.h"
 
+// Pino de leitura analógica
+#define pinAnalog 26
+
 // ID's
-#define SERVICE_UUID "32454db8-1322-11ec-82a8-0242ac130003"           // ID serviço
+#define SERVICE_UUID "4fafc201-1fb5-459e-8fcc-c5c9c331914b"           // ID serviço
 #define CHARACTERISTIC_UUID_TX "beb5483e-36e1-4688-b7f5-ea07361b26a8" // ID de característica TX
 #define CHARACTERISTIC_UUID_RX "808ccec4-d862-11eb-b8bc-0242ac130003" // ID de característica RX
 
 // Senhas para protocolo de segurança
-#define requestClientAppBT "hHo}8j<Sf(:4mTQW8W#l"  // Recebe do app
-#define passwordClientAppBT "&i((3,iH0,+-z[i]PpAh" // Envia para o app
+#define requestClientAppBT "tSdcxhoLVYj7oMT500&5"  // Recebe do app
+#define passwordClientAppBT "KQ.?2qf01X|,JZRq8!}," // Envia para o app
 
-// Pino de leitura analógica
-#define pinAnalog 26
+// Flag's
+#define SYNC_FLAG "@"
+#define APP_SENDS_USERID "/"
+#define APP_SENDS_SSID "~"
+#define APP_SENDS_PASSWORD "^"
+#define CONNECTION_ERROR "!"
+#define SUCCESSFULLY_CONNECTED "&"
 
 // Funções
 // Setup
@@ -53,6 +61,7 @@ bool getRequestBT();   // Recebe requisição com callback
 void sendREQUEST();    // Envia requisição para clientAPP
 
 // Disable
+void bleDisable();
 
 // Procedures
 void getID(networkLora *gtw);
