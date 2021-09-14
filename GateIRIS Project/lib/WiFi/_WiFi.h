@@ -12,6 +12,11 @@ typedef struct _wifi
 {
   String SSID;
   String PASSWORD;
+  IPAddress LOCAL_IP;
+  String MAC_ADDR;
+  IPAddress SUBNET_MASK;
+  IPAddress GATEWAY_IP;
+  IPAddress DNS_IP;
 } networkWiFi;
 
 // Funções

@@ -10,6 +10,7 @@
 extern networkLora gateway;
 
 // Funções
+void setupMultiCore(BaseType_t core);
 void taskLoRa(void *pvParameters);
 
 #endif

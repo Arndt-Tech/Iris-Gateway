@@ -13,10 +13,11 @@
 #include "multiCore.h"
 #include "specialFunc.h"
 #include "chipID.h"
+#include "_Firebase.h"
 
 // Funções
-void configSystem(networkLora *gtw, networkWiFi *wifi);
+void setupDataSystem(networkLora *gtw, networkWiFi *wifi, networkFirebase *fb);
 void getWiFi(networkWiFi *wifi);
-void getFirebase(networkLora *gtw);
+void getFirebase(networkLora *gtw, networkFirebase *fb);
 
 #endif 

@@ -7,7 +7,7 @@
 #include "EEPROM.h"
 
 // EEPROM Address
-#define EEPROM_SIZE 256 // 256 bytes reservados para EEPROM
+#define EEPROM_SIZE 255 // 256 bytes reservados para EEPROM
 
 // Local chipID
 #define loChID_min 0

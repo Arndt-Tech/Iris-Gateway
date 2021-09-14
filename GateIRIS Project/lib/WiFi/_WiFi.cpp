@@ -25,12 +25,29 @@ bool connectWifi(networkWiFi *wifi)
       connectWifi = millis();
     }
   }
+  wifi->LOCAL_IP = WiFi.localIP();
+  wifi->MAC_ADDR = WiFi.macAddress();
+  wifi->SUBNET_MASK = WiFi.subnetMask();
+  wifi->GATEWAY_IP = WiFi.gatewayIP();
+  wifi->DNS_IP = WiFi.dnsIP();
+
 
   Serial.println();
   Serial.print("Conectado na rede: ");
   Serial.println(wifi->SSID);
-  Serial.print("Endereço de IP é : ");
-  Serial.println(WiFi.localIP());
+
+  Serial.print("IP Address: ");
+  Serial.println(wifi->LOCAL_IP);
+
+  Serial.print("MAC Address: ");
+  Serial.println(wifi->MAC_ADDR);
+
+  Serial.print("Gateway IP: ");
+  Serial.println(wifi->GATEWAY_IP);
+
+  Serial.print("DNS IP: ");
+  Serial.println(wifi->DNS_IP);
+
   return 1;
 }
 

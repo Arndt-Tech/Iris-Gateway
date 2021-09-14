@@ -2,37 +2,35 @@
 #include "generalTasks.h"
 
 // Funções
-void configSystem(networkLora *gtw, networkWiFi *wifi)
+void setupDataSystem(networkLora *gtw, networkWiFi *wifi, networkFirebase *fb)
 {
   bool inconsistent_data = 0;
-  if ((verify_EEPROM(loChID_min) && verify_EEPROM(chID_min) && verify_EEPROM(ssid_min) && verify_EEPROM(password_min)))
+  if ((verify_EEPROM(loChID_min) && verify_EEPROM(ssid_min) && verify_EEPROM(password_min) && verify_EEPROM(UserID_min)))
   {
     Serial.println("Há dados na EEPROM");
     gtw->localAddr = atol(read_EEPROM(loChID_min).c_str());
-    gtw->destAddr = atol(read_EEPROM(chID_min).c_str());
     wifi->SSID = read_EEPROM(ssid_min);
     wifi->PASSWORD = read_EEPROM(password_min);
+    fb->USER_ID = read_EEPROM(UserID_min);
     Serial.println("Dados lidos!");
-
     while (!connectWifi(wifi))
     {
       Serial.println("Impossível conectar na rede");
       Serial.println("Reescreva o SSID e a SENHA");
       inconsistent_data = 1;
       setupBluetooth();
-      writeBT(CONNECTION_ERROR);
+      getFirebase(gtw, fb);
       getWiFi(wifi);
     }
     Serial.println("IRIS foi conectada com sucesso!");
     writeBT(SUCCESSFULLY_CONNECTED);
-
     if (inconsistent_data)
     {
       Serial.println("Dados salvos na EEPROM");
       write_EEPROM(String(gtw->localAddr), loChID_min);
-      write_EEPROM(String(gtw->destAddr), chID_min);
       write_EEPROM(wifi->SSID, ssid_min);
       write_EEPROM(wifi->PASSWORD, password_min);
+      write_EEPROM(fb->USER_ID, UserID_min);
       bleDisable();
     }
     Serial.println("Conectado na rede!");
@@ -42,9 +40,8 @@ void configSystem(networkLora *gtw, networkWiFi *wifi)
   {
     Serial.println("Não há dados na EEPROM");
     setupBluetooth();
-    getFirebase(gtw);
+    getFirebase(gtw, fb);
     getWiFi(wifi);
-
     while (!connectWifi(wifi))
     {
       Serial.println("Impossível conectar na rede");
@@ -53,14 +50,12 @@ void configSystem(networkLora *gtw, networkWiFi *wifi)
       getWiFi(wifi);
     }
     writeBT(SUCCESSFULLY_CONNECTED);
-
     Serial.println("IRIS foi conectada com sucesso!");
     write_EEPROM(String(gtw->localAddr), loChID_min);
-    write_EEPROM(String(gtw->destAddr), chID_min);
     write_EEPROM(wifi->SSID, ssid_min);
     write_EEPROM(wifi->PASSWORD, password_min);
+    write_EEPROM(fb->USER_ID, UserID_min);
     Serial.println("Dados salvos na EEPROM!");
-
     delay(1000);
     bleDisable();
   }
@@ -74,9 +69,10 @@ void getWiFi(networkWiFi *wifi)
   wifi->PASSWORD = getData();
 }
 
-void getFirebase(networkLora *gtw)
+void getFirebase(networkLora *gtw, networkFirebase *fb)
 {
   writeBT(APP_SENDS_USERID);
-  //firebase->UserID = getData();
+  fb->USER_ID = getData();
   gtw->localAddr = atol(writeBT(String(getChipID())).c_str());
+  fb->GATEWAY_ID = gtw->localAddr;
 }
