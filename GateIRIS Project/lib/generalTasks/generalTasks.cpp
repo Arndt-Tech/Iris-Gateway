@@ -74,5 +74,5 @@ void getFirebase(networkLora *gtw, networkFirebase *fb)
   writeBT(APP_SENDS_USERID);
   fb->USER_ID = getData();
   gtw->localAddr = atol(writeBT(String(getChipID())).c_str());
-  fb->GATEWAY_ID = gtw->localAddr;
+  fb->GATEWAY_ID = String (gtw->localAddr);
 }

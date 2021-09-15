@@ -13,7 +13,6 @@
 
 #define CENTER_ID_PREPROCESS "/Users/" + fb->USER_ID + "/Gateway/" + fb->GATEWAY_ID + "/Station/"
 //#define CENTER_ID_PREPROCESS "/Users/" + fb->USER_ID + "/Gateway/" + fb->GATEWAY_ID + "/Station/"
-                              //"/Teste/Usuario/Gateway/Gateway_ID/"
 // Struct's
 typedef struct firestruct
 {

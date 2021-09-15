@@ -236,7 +236,6 @@ void bluetoothConfig()
 
 void bleDisable()
 {
-  BLEDevice::deinit(false);
   esp_bluedroid_disable();
   esp_bluedroid_deinit();
   esp_bt_controller_disable();
