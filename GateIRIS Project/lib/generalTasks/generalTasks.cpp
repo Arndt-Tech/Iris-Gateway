@@ -31,7 +31,6 @@ void setupDataSystem(networkLora *gtw, networkWiFi *wifi, networkFirebase *fb)
       write_EEPROM(wifi->SSID, ssid_min);
       write_EEPROM(wifi->PASSWORD, password_min);
       write_EEPROM(fb->USER_ID, UserID_min);
-      bleDisable();
     }
     Serial.println("Conectado na rede!");
     delay(1000);
@@ -57,8 +56,8 @@ void setupDataSystem(networkLora *gtw, networkWiFi *wifi, networkFirebase *fb)
     write_EEPROM(fb->USER_ID, UserID_min);
     Serial.println("Dados salvos na EEPROM!");
     delay(1000);
-    bleDisable();
   }
+  bleDisable();
 }
 
 void getWiFi(networkWiFi *wifi)
