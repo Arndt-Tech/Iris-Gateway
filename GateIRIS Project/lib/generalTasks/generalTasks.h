@@ -19,5 +19,7 @@
 void setupDataSystem(networkLora *gtw, networkWiFi *wifi, networkFirebase *fb);
 void getWiFi(networkWiFi *wifi);
 void getFirebase(networkLora *gtw, networkFirebase *fb);
+void shift_vector(int cursor, int max, String *vector);
+void stationSeeker(networkFirebase *fb);
 
 #endif 

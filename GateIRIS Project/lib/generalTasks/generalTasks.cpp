@@ -76,3 +76,21 @@ void getFirebase(networkLora *gtw, networkFirebase *fb)
   gtw->localAddr = atol(writeBT(String(getChipID())).c_str());
   fb->GATEWAY_ID = String (gtw->localAddr);
 }
+
+void shift_vector(int cursor, int max, String *vector)
+{
+  for (int i = cursor; i < max; i++)
+  {
+    vector[i] = vector[i + 1];
+    vector[i + 1] = "";
+  }
+}
+
+void stationSeeker(networkFirebase *fb)
+{
+  fb->aux_TOTAL_STATIONS = fb->TOTAL_STATIONS;
+  if (!readStation(fb))
+    Serial.println("Nao encontrado");
+  if (fb->aux_TOTAL_STATIONS > fb->TOTAL_STATIONS)
+    shift_vector(fb->TOTAL_STATIONS, fb->aux_TOTAL_STATIONS, fb->STATION_ID);
+}

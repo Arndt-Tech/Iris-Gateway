@@ -30,10 +30,11 @@ bool readStation(networkFirebase *fb)
         //Serial.printf(("Estacao %d -> %s: %s\n"), st, value.key.c_str(), value.value.c_str());
         fb->STATION_ID[st] = value.value;
         st += 1;
-
       }
     }
-    fb->TOTAL_STATIONS = st;
+    if (st < MAX_STATIONS)
+      fb->TOTAL_STATIONS = st;
+    
     json->iteratorEnd();
     json->clear();
   }
