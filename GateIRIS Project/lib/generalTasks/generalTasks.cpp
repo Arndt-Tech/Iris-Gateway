@@ -12,6 +12,7 @@ void setupDataSystem(networkLora *gtw, networkWiFi *wifi, networkFirebase *fb)
     wifi->SSID = read_EEPROM(ssid_min);
     wifi->PASSWORD = read_EEPROM(password_min);
     fb->USER_ID = read_EEPROM(UserID_min);
+    fb->GATEWAY_ID = read_EEPROM(loChID_min);
     Serial.println("Dados lidos!");
     while (!connectWifi(wifi))
     {

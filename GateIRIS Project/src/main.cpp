@@ -16,6 +16,8 @@ networkLora gateway;
 networkWiFi net;
 networkFirebase server;
 
+uint8_t part_st[5] = {stationID1_min, stationID2_min, stationID3_min, stationID4_min, stationID5_min};
+
 void setup()
 {
   configBegin();
@@ -25,14 +27,34 @@ void setup()
   setupFirebase(&server);
   setupLoRa(&gateway);
   setupMultiCore(0);
+
+  if (!readStation(&server))
+    Serial.println("Nao encontrado");
+  if (server.TOTAL_STATIONS > 0)
+  {
+    for (uint16_t i = 0; i < server.TOTAL_STATIONS; i++)
+    {
+      if (!verify_EEPROM(part_st[i]))
+        write_EEPROM(server.STATION_ID[i], part_st[i]);
+    }
+  }
+  else Serial.println("Nenhuma estacao");
 }
 
 void loop()
 {
-  readStation(&server);
+  //stationAnt = server.TOTAL_STATIONS;
+  if (!readStation(&server))
+    Serial.println("Nao encontrado");
+  /*if (stationAnt > server.TOTAL_STATIONS)
+  {
+    server.STATION_ID[stationAnt];
+  }*/
+  
   for (uint16_t i = 0; i < server.TOTAL_STATIONS; i++)
-    Serial.printf("\nEstacao [%d] --> chipID: %s", i, server.STATION_ID[i].c_str());
-  delay (100);
-  delay(100);
-  Serial.println("Heap Loop: " + String(xPortGetFreeHeapSize()));
+    Serial.println("Estacao " + String(i) + " --> " + server.STATION_ID[i]);
+
+
+
+  delay(500);
 }

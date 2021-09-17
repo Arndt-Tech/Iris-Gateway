@@ -27,9 +27,10 @@ bool readStation(networkFirebase *fb)
       value = json->valueAt(i);
       if (value.key == "chipID")
       {
-        //Serial.printf(("Estacao %d -> %s: %s\n"), i, value.key.c_str(), value.value.c_str());
+        //Serial.printf(("Estacao %d -> %s: %s\n"), st, value.key.c_str(), value.value.c_str());
+        fb->STATION_ID[st] = value.value;
         st += 1;
-        fb->STATION_ID[i] = value.value;
+
       }
     }
     fb->TOTAL_STATIONS = st;
