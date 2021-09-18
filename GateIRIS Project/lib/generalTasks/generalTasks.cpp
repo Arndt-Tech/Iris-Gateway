@@ -2,6 +2,12 @@
 #include "generalTasks.h"
 
 // Funções
+void configBegin()
+{
+  Serial.begin(115200);
+  EEPROM.begin(EEPROM_SIZE);
+}
+
 void setupDataSystem(networkLora *gtw, networkWiFi *wifi, networkFirebase *fb)
 {
   bool inconsistent_data = 0;
@@ -74,7 +80,7 @@ void getFirebase(networkLora *gtw, networkFirebase *fb)
   writeBT(APP_SENDS_USERID);
   fb->USER_ID = getData();
   gtw->localAddr = atol(writeBT(String(getChipID())).c_str());
-  fb->GATEWAY_ID = String (gtw->localAddr);
+  fb->GATEWAY_ID = String(gtw->localAddr);
 }
 
 void shift_vector(int cursor, int max, String *vector)
@@ -92,5 +98,6 @@ void stationSeeker(networkFirebase *fb)
   if (!readStation(fb))
     Serial.println("Nao encontrado");
   if (fb->aux_TOTAL_STATIONS > fb->TOTAL_STATIONS)
-    shift_vector(fb->TOTAL_STATIONS, fb->aux_TOTAL_STATIONS, fb->STATION_ID);
+    ;
+  shift_vector(fb->TOTAL_STATIONS, fb->aux_TOTAL_STATIONS, fb->STATION_ID);
 }

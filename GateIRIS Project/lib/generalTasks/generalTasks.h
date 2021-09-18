@@ -4,7 +4,6 @@
 // Inclusões
 #include <Arduino.h>
 #include <FreeRTOS.h>
-#include "configBegin.h"
 #include "OLED.h"
 #include "Bluetooth.h"
 #include "_EEPROM.h"
@@ -16,10 +15,11 @@
 #include "_Firebase.h"
 
 // Funções
+void configBegin();
 void setupDataSystem(networkLora *gtw, networkWiFi *wifi, networkFirebase *fb);
 void getWiFi(networkWiFi *wifi);
 void getFirebase(networkLora *gtw, networkFirebase *fb);
 void shift_vector(int cursor, int max, String *vector);
 void stationSeeker(networkFirebase *fb);
 
-#endif 
+#endif

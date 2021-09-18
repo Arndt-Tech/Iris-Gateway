@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include <FreeRTOS.h>
-#include "configBegin.h"
 #include "OLED.h"
 #include "generalTasks.h"
 #include "Bluetooth.h"
@@ -19,20 +18,18 @@ networkFirebase server;
 void setup()
 {
   configBegin();
-  //clear_EEPROM(0, EEPROM_SIZE);
   setupOLED();
   setupDataSystem(&gateway, &net, &server);
   setupFirebase(&server);
   setupLoRa(&gateway);
   setupMultiCore(0);
-
   stationSeeker(&server);
+  gateway.destAddr = atol(server.STATION_ID[0].c_str());
 }
 
 void loop()
 {
   stationSeeker(&server);
-
   for (uint16_t i = 0; i < MAX_STATIONS; i++)
     Serial.println("Estacao " + String(i) + " --> " + server.STATION_ID[i]);
   Serial.println("");

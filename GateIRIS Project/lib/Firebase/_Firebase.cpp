@@ -34,7 +34,7 @@ bool readStation(networkFirebase *fb)
     }
     if (st < MAX_STATIONS)
       fb->TOTAL_STATIONS = st;
-    
+
     json->iteratorEnd();
     json->clear();
   }
