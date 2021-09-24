@@ -31,7 +31,7 @@ void runningLoRa(networkLora *gtw, networkFirebase *fb)
   gtw->packSize = LoRa.parsePacket();
   receive_LoRa_Message(gtw);
   gtw->stationCursor += 1;
-  if (gtw->stationCursor == fb->TOTAL_STATIONS)
+  if (gtw->stationCursor >= fb->TOTAL_STATIONS)
     gtw->stationCursor = 0;
 }
 
