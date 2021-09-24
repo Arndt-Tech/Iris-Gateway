@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
     printf ("4 - Remover estacao especifica\n");
     printf ("8 - Visualizar enderecos\n");
     printf ("9 - Reset\n");
-	printf ("ESC - Quit\n");
+		printf ("ESC - Quit\n");
     putchar('\n');
 	
     int cmd = getch ();
@@ -71,7 +71,8 @@ int main(int argc, char *argv[])
     switch (cmd)
     {
       case '1':
-        add_station(&ptrStation, anchor, MAX_STATIONS, (int*)vrf_av_maddr(station, MAX_STATIONS) ,&counter, data);
+      	printf("Digite um numero de 0-9\n");
+        add_station(&ptrStation, anchor, MAX_STATIONS, (int*)vrf_av_maddr(station, MAX_STATIONS) ,&counter, (getchar()-48));
       break;
 		
 		
@@ -105,7 +106,8 @@ int main(int argc, char *argv[])
         exit (0);
       break;
     }	
-  system ("CLS");
+    fflush(stdin);
+  	system ("CLS");
   }
   return 0;
 }
@@ -126,7 +128,6 @@ int add_station(int **ptr_mem, int *anch, int max_anch, int *addr, int *cnt, int
   {
     *ptr_mem = addr;
     **ptr_mem = dat;
-    
     ++*cnt;
     printf ("Estacao adicionada!\n");
     return 1;

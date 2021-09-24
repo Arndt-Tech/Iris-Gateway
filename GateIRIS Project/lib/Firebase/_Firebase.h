@@ -4,27 +4,30 @@
 #include <Arduino.h>
 #include <FreeRTOS.h>
 #include <FirebaseESP32.h>
-//#include "addons/TokenHelper.h "
-//#include "addons/RTDBHelper.h"
 
 // Definições
 #define FIREBASE_HOST "iris-24c17-default-rtdb.firebaseio.com"
 #define FIREBASE_AUTH "ZQlCp7oKTm7QYupuhh9b2C8pqajd3CoxGwK9iAbl"
-
-#define INIT_MAX_STATIONS 128
-#define MAX_STATIONS 5
+// Locais
 #define CENTER_ID_PREPROCESS "/Users/" + fb->USER_ID + "/Gateway/" + fb->GATEWAY_ID + "/Station/"
-//#define CENTER_ID_PREPROCESS "/Users/" + fb->USER_ID + "/Gateway/" + fb->GATEWAY_ID + "/Station/"
+#define CENTER_ISON_PREPROCESS "/Users/" + fb->USER_ID + "/Gateway/" + fb->GATEWAY_ID + "/Station/" + value.value + "/isOn/"
+// Inicializações
+#define INIT_MAX_STATIONS 10
+#define INIT_PARAMETERS 4
+#define MAX_STATIONS 5
+// Parametros
+#define RETURN 1
+#define ISON 2
+
 // Struct's
 typedef struct firestruct
 {
-  String CENTER_ID;
+  // ID's
   String USER_ID;
   String GATEWAY_ID;
-  String STATION_ID[INIT_MAX_STATIONS];
-  uint16_t aux_TOTAL_STATIONS;
+  String STATION_ID[INIT_MAX_STATIONS][INIT_PARAMETERS];
+  // Gerais
   uint16_t TOTAL_STATIONS;
-  FirebaseData FIREBASE_DATA;
 } networkFirebase;
 
 // Funções

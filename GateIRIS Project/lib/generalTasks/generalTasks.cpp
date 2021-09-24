@@ -94,10 +94,6 @@ void shift_vector(int cursor, int max, String *vector)
 
 void stationSeeker(networkFirebase *fb)
 {
-  fb->aux_TOTAL_STATIONS = fb->TOTAL_STATIONS;
   if (!readStation(fb))
-    Serial.println("Nao encontrado");
-  if (fb->aux_TOTAL_STATIONS > fb->TOTAL_STATIONS)
-    ;
-  shift_vector(fb->TOTAL_STATIONS, fb->aux_TOTAL_STATIONS, fb->STATION_ID);
+    Serial.println("ERROR");
 }

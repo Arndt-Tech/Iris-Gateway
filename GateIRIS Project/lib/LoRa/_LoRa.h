@@ -6,6 +6,7 @@
 #include <FreeRTOS.h>
 #include <SPI.h>
 #include <LoRa.h>
+#include "_Firebase.h"
 
 // LoRa Config.
 #define INTERVAL 2000 // 2000 + 205ms para compensar o delay de processamento do Gateway
@@ -21,16 +22,18 @@
 // Struct's
 typedef struct _lora
 {
-  uint32_t localAddr;
   uint32_t destAddr;
+  uint32_t localAddr;
+  uint8_t stationCursor;
+  uint8_t isOn;
   int packSize;
   String incomingPack;
 } networkLora;
 
 // Funções
 void setupLoRa(networkLora *gtw);
-void runningLoRa(networkLora *gtw);
-void send_LoRa_Message(String pack, networkLora *gtw);
+void runningLoRa(networkLora *gtw, networkFirebase *fb);
+void send_LoRa_Message(networkLora *gtw, networkFirebase *fb);
 String receive_LoRa_Message(networkLora *gtw);
 uint32_t asm_addr(uint8_t *addr);
 
