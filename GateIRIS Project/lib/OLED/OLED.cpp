@@ -68,7 +68,7 @@ void runnigSystem(networkLora *gtw)
 {
   display.setTextAlignment(TEXT_ALIGN_LEFT);
   display.setFont(Dialog_plain_12);
-  display.drawString(0, 25, "Gateway: " + String(gtw->destAddr));
+  display.drawString(0, 25, "Gateway: ");
   display.drawString(0, 45, "Local: " + String(gtw->localAddr));
   display.display();
 }

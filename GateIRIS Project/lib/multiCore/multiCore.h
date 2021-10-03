@@ -7,6 +7,7 @@
 #include "_LoRa.h"
 
 // Struct's externas
+extern networkFirebase server;
 extern networkLora gateway;
 
 // Funções

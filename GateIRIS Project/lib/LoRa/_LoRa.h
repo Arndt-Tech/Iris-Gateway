@@ -22,19 +22,26 @@
 // Struct's
 typedef struct _lora
 {
-  uint32_t destAddr;
   uint32_t localAddr;
   uint8_t stationCursor;
   uint8_t isOn;
-  int packSize;
-  String incomingPack;
+  int8_t packSize;
 } networkLora;
+
+typedef struct
+{
+  uint8_t dest_addr[4], sender_addr[4];
+  uint8_t fSender, iterator;
+  uint8_t aux_hmdt, aux_temp[2];
+  uint16_t packageLength;
+} _loraData;
 
 // Funções
 void setupLoRa(networkLora *gtw);
 void runningLoRa(networkLora *gtw, networkFirebase *fb);
 void send_LoRa_Message(networkLora *gtw, networkFirebase *fb);
-String receive_LoRa_Message(networkLora *gtw);
+String receive_LoRa_Message(networkLora *gtw, networkFirebase *fb);
+void org_FB_data(_loraData *__data, networkFirebase *fb);
 uint32_t asm_addr(uint8_t *addr);
 
 #endif

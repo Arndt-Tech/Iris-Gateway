@@ -13,13 +13,14 @@
 #define CENTER_ISON_PREPROCESS "/Users/" + fb->USER_ID + "/Gateway/" + fb->GATEWAY_ID + "/Station/" + value.value + "/isOn/"
 // Inicializações
 #define INIT_MAX_STATIONS 10
-#define INIT_PARAMETERS 4
 #define MAX_STATIONS 5
+#define INIT_PARAMETERS 4
 // Parametros
 #define RETURN 1
 #define ISON 2
+#define FB_HUMIDITY 3
+#define FB_TEMPERATURE 4
 
-// Struct's
 typedef struct firestruct
 {
   // ID's
