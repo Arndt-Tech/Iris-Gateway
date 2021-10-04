@@ -33,7 +33,27 @@ O GateIRIS é uma parte do projeto principal IRIS. Tem como principal função o
 
 - Função de reconexão wifi adicionada;
 
-- Função de escrita de erros na EEPROM adicionada.
+- Função de escrita de erros na EEPROM adicionada;
+
+- Função de escrita de erros na EEPROM removida;
+
+- Comunicação via LoRa estabelecida e estabilizada;
+
+- Funções do firebase otimizadas e melhoradas;
+
+- Protocolo de envio e recebimento LoRa refatorado;
+
+- Núcleo 0 rodando tarefas LoRa;
+
+- Núcleo 0 estabilizado;
+
+- Interface de Display OLED desenvolvida;
+
+- Timeout LoRa adicionado;
+
+- Watchdog Timer rodando em ambos os núcleos;
+
+- ID's de comunicação LoRa foram alterados para os chipID's;
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 ## BLUETOOTH LOW ENERGY
