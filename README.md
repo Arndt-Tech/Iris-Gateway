@@ -3,13 +3,13 @@ O GateIRIS é uma parte do projeto principal IRIS. Tem como principal função o
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
-### GateIRIS -> [GateIRIS](https://github.com/SI-ART/GateIRIS).
+### [GateIRIS](https://github.com/SI-ART/GateIRIS).
 ### Desenvolvedor -> [Daniel Arndt](https://github.com/Chimeric-arch).
 -------------------------------------------------------------------------------
-### IRIS Station  -> [IRIS Station](https://github.com/I-grow/Station_IRIS).
+### [IRIS Station](https://github.com/I-grow/Station_IRIS).
 ### Desenvolvedor -> [Daniel Arndt](https://github.com/Chimeric-arch).
 -------------------------------------------------------------------------------
-### IRIS App -> [IRIS App](https://github.com/I-grow/App_IRIS).
+### [IRIS App](https://github.com/I-grow/App_IRIS).
 ### Desenvolvedor -> [João Vitor](https://github.com/jajao1).
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
