@@ -1,6 +1,7 @@
 #ifndef _FIREBASE_H
 #define _FIREBASE_H
 
+// Inclusões
 #include <Arduino.h>
 #include <FreeRTOS.h>
 #include <FirebaseESP32.h>
@@ -11,16 +12,19 @@
 // Locais
 #define CENTER_ID_PREPROCESS "/Users/" + fb->USER_ID + "/Gateway/" + fb->GATEWAY_ID + "/Station/"
 #define CENTER_ISON_PREPROCESS "/Users/" + fb->USER_ID + "/Gateway/" + fb->GATEWAY_ID + "/Station/" + value.value + "/isOn/"
+#define CENTER_ISCONN_PREPROCESS "/Users/" + fb->USER_ID + "/Gateway/" + fb->GATEWAY_ID + "/Station/" + *fb->STATION_ID[i] + "/isConnected/"
 // Inicializações
 #define INIT_MAX_STATIONS 10
-#define MAX_STATIONS 5
-#define INIT_PARAMETERS 4
-// Parametros
+#define MAX_STATIONS ((INIT_MAX_STATIONS)/2)
+#define INIT_PARAMETERS 10
+// Parâmetros
 #define RETURN 1
 #define ISON 2
-#define FB_HUMIDITY 3
-#define FB_TEMPERATURE 4
+#define ISCONNECTED 3
+#define FB_HUMIDITY 4
+#define FB_TEMPERATURE 5
 
+// Struct's
 typedef struct firestruct
 {
   // ID's

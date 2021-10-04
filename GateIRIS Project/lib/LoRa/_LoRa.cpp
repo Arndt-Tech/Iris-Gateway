@@ -8,7 +8,8 @@ void setupLoRa(networkLora *gtw)
   if (!LoRa.begin(BAND))
   {
     Serial.println("Erro ao inicializar LoRa!");
-    while (1);
+    while (1)
+      ;
   }
   LoRa.enableCrc();
   gtw->stationCursor = 0;
@@ -17,18 +18,19 @@ void setupLoRa(networkLora *gtw)
 
 void runningLoRa(networkLora *gtw, networkFirebase *fb)
 {
+  verify_LoRa_Timeout(fb);
   static unsigned long tLoRaSend = 0;
-  if ((millis() - tLoRaSend) >= INTERVAL)
+  if ((xTaskGetTickCount() - tLoRaSend) > INTERVAL)
   {
     send_LoRa_Message(gtw, fb);
-    tLoRaSend = millis();
+    tLoRaSend = xTaskGetTickCount();
   }
   gtw->packSize = LoRa.parsePacket();
-  Serial.println(LoRa.parsePacket());
   receive_LoRa_Message(gtw, fb);
   gtw->stationCursor += 1;
   if (gtw->stationCursor >= fb->TOTAL_STATIONS)
     gtw->stationCursor = 0;
+  vTaskDelay(1);
 }
 
 void send_LoRa_Message(networkLora *gtw, networkFirebase *fb)
@@ -59,18 +61,14 @@ void send_LoRa_Message(networkLora *gtw, networkFirebase *fb)
   // Fim
   LoRa.endPacket();
   gtw->packSize = packLen;
-  // Seto a flag timeout de requisição
-  for (int i = 0; i < fb->TOTAL_STATIONS; i++)
-  {
-    if (String(gtw->localAddr) == *fb->STATION_ID[i])
-      fb->STATION_ID[i][RETURN] = "1";
-  }
+  // Seto a flag pendência de retorno da estação
+  fb->STATION_ID[gtw->stationCursor][RETURN] = "1";
 }
 
 String receive_LoRa_Message(networkLora *gtw, networkFirebase *fb)
 {
   if (gtw->packSize == 0)
-    return "";
+    return "[ERR-LORA:NO PACKAGE]";
   _loraData aux_data;
   for (register int i = 0; i < 4; i++)
     aux_data.dest_addr[i] = LoRa.read();
@@ -86,14 +84,13 @@ String receive_LoRa_Message(networkLora *gtw, networkFirebase *fb)
     }
   }
   if (asm_addr(aux_data.dest_addr) != gtw->localAddr || aux_data.fSender == 0)
-    return ""; // Pacote ignorado
+    return "[ERR-LORA:IGNORED PACKAGE]"; // Pacote ignorado
   aux_data.aux_hmdt = LoRa.read();
   aux_data.aux_temp[0] = LoRa.read();
   aux_data.aux_temp[1] = LoRa.read();
   aux_data.packageLength = LoRa.read();
   if (aux_data.packageLength != gtw->packSize)
-    return ""; // Pacote inconsistente
-
+    return "[ERR-LORA:INCONSISTENT PACKAGE]"; // Pacote inconsistente
   org_FB_data(&aux_data, fb);
 
   Serial.println("Destino: " + String(asm_addr(aux_data.dest_addr)));
@@ -109,12 +106,26 @@ String receive_LoRa_Message(networkLora *gtw, networkFirebase *fb)
 void org_FB_data(_loraData *__data, networkFirebase *fb)
 {
   uint16_t _aux_temp = 0;
-  _aux_temp |= __data->aux_temp[0];
-  _aux_temp |= __data->aux_temp[1] << 8;
+  _aux_temp |= __data->aux_temp[0] & 0xFF;
+  _aux_temp |= __data->aux_temp[1] << 8 & 0xFF;
 
   fb->STATION_ID[__data->iterator][RETURN] = "0";
   fb->STATION_ID[__data->iterator][FB_HUMIDITY] = String(__data->aux_hmdt);
   fb->STATION_ID[__data->iterator][FB_TEMPERATURE] = String((float)_aux_temp / 10, 1);
+}
+
+void verify_LoRa_Timeout(networkFirebase *fb)
+{
+  static unsigned long tPend = 0;
+  if ((millis() - tPend) >= loraTmt)
+  {
+    for (uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
+      if (fb->STATION_ID[i][RETURN] == "1")
+        fb->STATION_ID[i][ISCONNECTED] = "false";
+      else if (fb->STATION_ID[i][RETURN] == "0")
+        fb->STATION_ID[i][ISCONNECTED] = "true";
+    tPend = millis();
+  }
 }
 
 uint32_t asm_addr(uint8_t *addr)

@@ -5,6 +5,7 @@ void setupFirebase(networkFirebase *fb)
 {
   Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
   Firebase.reconnectWiFi(true);
+  readStation(fb);
 }
 
 bool readStation(networkFirebase *fb)

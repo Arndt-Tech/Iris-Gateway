@@ -3,6 +3,7 @@
 networkFirebase server;
 networkLora gateway;
 networkWiFi net;
+hw_timer_t *WDT = NULL;
 
 void setup()
 {
@@ -12,6 +13,12 @@ void setup()
   setupFirebase(&server);
   setupLoRa(&gateway);
   setupMultiCore(0);
+  setupWatchdogTimer(time(10));
 }
 
-void loop() { stationSeeker(&server); }
+void loop()
+{
+  timerWrite(WDT, 0);
+  stationSeeker(&server); 
+  setStatus(&server); 
+}

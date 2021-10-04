@@ -19,6 +19,9 @@
 #define RST 14
 #define DI00 26
 
+// Definições
+#define loraTmt 5000
+
 // Struct's
 typedef struct _lora
 {
@@ -42,6 +45,7 @@ void runningLoRa(networkLora *gtw, networkFirebase *fb);
 void send_LoRa_Message(networkLora *gtw, networkFirebase *fb);
 String receive_LoRa_Message(networkLora *gtw, networkFirebase *fb);
 void org_FB_data(_loraData *__data, networkFirebase *fb);
+void verify_LoRa_Timeout(networkFirebase *fb);
 uint32_t asm_addr(uint8_t *addr);
 
 #endif

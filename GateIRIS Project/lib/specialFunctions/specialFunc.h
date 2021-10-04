@@ -7,5 +7,6 @@
 
 // Funções
 void IRAM_ATTR resetModule();
+void setupWatchdogTimer(uint64_t tm); // Núcleo 1
 
 #endif

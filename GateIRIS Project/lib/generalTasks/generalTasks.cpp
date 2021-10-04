@@ -99,3 +99,13 @@ void stationSeeker(networkFirebase *fb)
   if (!readStation(fb))
     Serial.println("ERROR");
 }
+
+void setStatus(networkFirebase *fb)
+{
+  FirebaseData FIREBASE_ISCONN;
+  for(uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
+    if (fb->STATION_ID[i][ISCONNECTED] == "false")
+      Firebase.setBool(FIREBASE_ISCONN, CENTER_ISCONN_PREPROCESS, false);
+    else if (fb->STATION_ID[i][ISCONNECTED] == "true")
+      Firebase.setBool(FIREBASE_ISCONN, CENTER_ISCONN_PREPROCESS, true);
+}
