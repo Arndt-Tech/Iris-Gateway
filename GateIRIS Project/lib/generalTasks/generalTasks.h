@@ -15,7 +15,7 @@
 #include "_Firebase.h"
 
 // Definições
-#define time(a) (a * 1000000) // Tempo em segundos
+#define time(a) (uint64_t)(a * 1000000) // Tempo em segundos
 
 // Funções
 void configBegin();

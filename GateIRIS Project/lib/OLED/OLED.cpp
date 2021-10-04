@@ -22,53 +22,33 @@ void setupOLED()
   delay(3000);
 }
 
-void dataBar(int temperature, String icon, float lora_sig)
+void dataBar(String icon, uint8_t stations, bool commit, bool clear)
 {
-  display.clear();
+  if (clear)
+    display.clear();
+  display.drawHorizontalLine(0, 21, 128);
 
-  // Temperatura
-  if (isnan(temperature))
-  {
-    display.setTextAlignment(TEXT_ALIGN_LEFT);
-    display.setFont(Dialog_plain_12);
-    display.drawString(0, 4, "N/A");
-  }
-  else
-  {
-    display.setTextAlignment(TEXT_ALIGN_LEFT);
-    display.setFont(Dialog_plain_12);
-    display.drawString(0, 4, String(temperature) + "°C");
-  }
+  display.setTextAlignment(TEXT_ALIGN_LEFT);
+  display.setFont(Dialog_plain_12);
+  display.drawString(0, 4, String(stations));
+  display.drawIco16x16(10, 2, station, false);
 
-  // Ícone de tempo
   display.setTextAlignment(TEXT_ALIGN_RIGHT);
   display.setFont(Meteocons_Regular_18);
   display.drawString(128, 0, icon);
-
-  // dBM
-  display.setTextAlignment(TEXT_ALIGN_LEFT);
-  display.setFont(Dialog_plain_12);
-  display.drawString(0, 64, String(lora_sig));
-
-  // Força sinal LoRa
-  if (lora_sig >= -35)
-    display.drawIco16x16(88, 0, lora_str_signal, false);
-  else if (lora_sig < -30 && lora_sig >= -60)
-    display.drawIco16x16(88, 0, lora_mid_signal, false);
-  else if (lora_sig < -60 && lora_sig >= -120)
-    display.drawIco16x16(88, 0, lora_low_signal, false);
-  else if (lora_sig < -120 || lora_sig == -164)
-    display.drawIco16x16(88, 0, lora_not_signal, false);
-
-  display.drawHorizontalLine(0, 21, 128);
-  //display.display();
+  
+  if (commit)
+    display.display();
 }
 
-void runnigSystem(networkLora *gtw)
+void runnigSystem(networkLora *gtw, bool commit, bool clear)
 {
+  if (clear)
+    display.clear();
   display.setTextAlignment(TEXT_ALIGN_LEFT);
   display.setFont(Dialog_plain_12);
   display.drawString(0, 25, "Gateway: ");
   display.drawString(0, 45, "Local: " + String(gtw->localAddr));
-  display.display();
+  if (commit)
+    display.display();
 }

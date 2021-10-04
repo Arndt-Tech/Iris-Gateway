@@ -24,7 +24,7 @@ extern networkLora gateway;
 
 // Funções
 void setupOLED();
-void dataBar(int temperature, String icon, float lora_sig);
-void runnigSystem(networkLora *gtw);
+void dataBar(String icon, uint8_t stations, bool commit, bool clear);
+void runnigSystem(networkLora *gtw, bool commit, bool clear);
 
 #endif
