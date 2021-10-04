@@ -78,7 +78,7 @@ Para uma comunicação estável, discreta e segura entre o *clientAPP* e o *Gate
 
 6. O *GateIRIS* estará configurado para o funcionamento.
 
-Segue um código de exemplo mostrando mais detalhes sobre os procedimentos de comunicação através do [Bluetooth Low Energy](https://github.com/I-grow/Gateway_IRIS/blob/main/BLE_GateIRIS/BLE_GateIRIS.ino).
+Segue um código de exemplo mostrando mais detalhes sobre os procedimentos de comunicação através do [Bluetooth Low Energy](https://github.com/SI-ART/GateIRIS/blob/main/Examples/BLE_GateIRIS/BLE_GateIRIS.ino).
 
 -------------------------------------------------------------------------------
 #### FLAGS DE COMUNICAÇÃO
