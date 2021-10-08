@@ -3,13 +3,13 @@ O GateIRIS é uma parte do projeto principal IRIS. Tem como principal função o
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
-### GateIRIS -> [GateIRIS](https://github.com/SI-ART/GateIRIS).
+### [GateIRIS](https://github.com/SI-ART/GateIRIS).
 ### Desenvolvedor -> [Daniel Arndt](https://github.com/Chimeric-arch).
 -------------------------------------------------------------------------------
-### IRIS Station  -> [IRIS Station](https://github.com/I-grow/Station_IRIS).
+### [IRIS Station](https://github.com/I-grow/Station_IRIS).
 ### Desenvolvedor -> [Daniel Arndt](https://github.com/Chimeric-arch).
 -------------------------------------------------------------------------------
-### IRIS App -> [IRIS App](https://github.com/I-grow/App_IRIS).
+### [IRIS App](https://github.com/I-grow/App_IRIS).
 ### Desenvolvedor -> [João Vitor](https://github.com/jajao1).
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -33,7 +33,27 @@ O GateIRIS é uma parte do projeto principal IRIS. Tem como principal função o
 
 - Função de reconexão wifi adicionada;
 
-- Função de escrita de erros na EEPROM adicionada.
+- Função de escrita de erros na EEPROM adicionada;
+
+- Função de escrita de erros na EEPROM removida;
+
+- Comunicação via LoRa estabelecida e estabilizada;
+
+- Funções do firebase otimizadas e melhoradas;
+
+- Protocolo de envio e recebimento LoRa refatorado;
+
+- Núcleo 0 rodando tarefas LoRa;
+
+- Núcleo 0 estabilizado;
+
+- Interface de Display OLED desenvolvida;
+
+- Timeout LoRa adicionado;
+
+- Watchdog Timer rodando em ambos os núcleos;
+
+- ID's de comunicação LoRa foram alterados para os chipID's;
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 ## BLUETOOTH LOW ENERGY
@@ -78,7 +98,7 @@ Para uma comunicação estável, discreta e segura entre o *clientAPP* e o *Gate
 
 6. O *GateIRIS* estará configurado para o funcionamento.
 
-Segue um código de exemplo mostrando mais detalhes sobre os procedimentos de comunicação através do [Bluetooth Low Energy](https://github.com/I-grow/Gateway_IRIS/blob/main/BLE_GateIRIS/BLE_GateIRIS.ino).
+Segue um código de exemplo mostrando mais detalhes sobre os procedimentos de comunicação através do [Bluetooth Low Energy](https://github.com/SI-ART/GateIRIS/blob/main/Examples/BLE_GateIRIS/BLE_GateIRIS.ino).
 
 -------------------------------------------------------------------------------
 #### FLAGS DE COMUNICAÇÃO
