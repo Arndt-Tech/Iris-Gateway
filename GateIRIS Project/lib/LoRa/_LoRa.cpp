@@ -92,7 +92,6 @@ String receive_LoRa_Message(networkLora *gtw, networkFirebase *fb)
   if (aux_data.packageLength != gtw->packSize)
     return "[ERR-LORA:INCONSISTENT PACKAGE]"; // Pacote inconsistente
   org_FB_data(&aux_data, fb);
-
   Serial.println("Destino: " + String(asm_addr(aux_data.dest_addr)));
   Serial.println("Remetente: " + String(asm_addr(aux_data.sender_addr)));
   Serial.println("Umidade: " + String(fb->STATION_ID[aux_data.iterator][FB_HUMIDITY]));

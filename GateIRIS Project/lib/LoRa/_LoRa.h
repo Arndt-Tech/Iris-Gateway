@@ -8,6 +8,10 @@
 #include <LoRa.h>
 #include "_Firebase.h"
 
+// Definições
+#define STD 0
+#define DELETE 2
+
 // LoRa Config.
 #define INTERVAL 2000 // 2000 + 205ms para compensar o delay de processamento do Gateway
 #define BAND 433E6    // Frequencia 433MHz
@@ -20,7 +24,7 @@
 #define DI00 26
 
 // Definições
-#define loraTmt 5000
+#define loraTmt 10000
 
 // Struct's
 typedef struct _lora

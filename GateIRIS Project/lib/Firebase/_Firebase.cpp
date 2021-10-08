@@ -21,6 +21,11 @@ bool readStation(networkFirebase *fb)
     uint16_t st = 0;
     FirebaseJson::IteratorValue value;
     uint16_t aux_TOTAL_STATIONS = fb->TOTAL_STATIONS;
+
+    String aux_STATION_ID[INIT_MAX_STATIONS];
+    for (uint8_t i = 0; i < aux_TOTAL_STATIONS; i++)
+      aux_STATION_ID[i] = *fb->STATION_ID[i];
+
     for (size_t i = 0; i < len; i++)
     {
       value = json->valueAt(i);
@@ -40,8 +45,10 @@ bool readStation(networkFirebase *fb)
     fb->TOTAL_STATIONS = st;
     if (aux_TOTAL_STATIONS > fb->TOTAL_STATIONS)
     {
+      uint8_t iterator = 0;
       *fb->STATION_ID[fb->TOTAL_STATIONS] = "";
-      fb->STATION_ID[fb->TOTAL_STATIONS][ISON] = "";
+      for (uint8_t i = 0; i < INIT_PARAMETERS; i++)
+        fb->STATION_ID[fb->TOTAL_STATIONS][i] = "";
     }
     json->iteratorEnd();
     json->clear();
