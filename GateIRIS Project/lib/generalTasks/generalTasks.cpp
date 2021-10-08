@@ -103,9 +103,15 @@ void stationSeeker(networkFirebase *fb)
 void setStatus(networkFirebase *fb)
 {
   FirebaseData FIREBASE_ISCONN;
-  for(uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
-    if (fb->STATION_ID[i][ISCONNECTED] == "false")
-      Firebase.setBool(FIREBASE_ISCONN, CENTER_ISCONN_PREPROCESS, false);
-    else if (fb->STATION_ID[i][ISCONNECTED] == "true")
-      Firebase.setBool(FIREBASE_ISCONN, CENTER_ISCONN_PREPROCESS, true);
+  if (*fb->STATION_ID[TIMEOUT] == "1")
+  {
+    *fb->STATION_ID[TIMEOUT] == "0";
+    for (uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
+      if (fb->STATION_ID[i][ISCONNECTED] == "f")
+        Firebase.setBool(FIREBASE_ISCONN, CENTER_ISCONN_PREPROCESS, false);
+  }
+  else
+    for (uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
+      if (fb->STATION_ID[i][ISCONNECTED] == "t")
+        Firebase.setBool(FIREBASE_ISCONN, CENTER_ISCONN_PREPROCESS, true);
 }

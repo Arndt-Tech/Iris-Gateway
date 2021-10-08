@@ -115,15 +115,32 @@ void org_FB_data(_loraData *__data, networkFirebase *fb)
 
 void verify_LoRa_Timeout(networkFirebase *fb)
 {
-  static unsigned long tPend = 0;
-  if ((millis() - tPend) >= loraTmt)
+  uint8_t rstTmt = 0;
+  for (uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
   {
-    for (uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
-      if (fb->STATION_ID[i][RETURN] == "1")
-        fb->STATION_ID[i][ISCONNECTED] = "false";
-      else if (fb->STATION_ID[i][RETURN] == "0")
-        fb->STATION_ID[i][ISCONNECTED] = "true";
-    tPend = millis();
+    if (fb->STATION_ID[i][RETURN] == "1")
+    {
+      rstTmt = 0;
+      fb->STATION_ID[i][ISCONNECTED] = "f";
+    }
+    else if (fb->STATION_ID[i][RETURN] == "0")
+    {
+      rstTmt = 1;
+      fb->STATION_ID[i][ISCONNECTED] = "t";
+    }
+  }
+  static unsigned long tPend = 0;
+  if ((xTaskGetTickCount() - tPend) >= loraTmt && !rstTmt)
+  {
+    //Serial.println("TIMEOUT");
+    *fb->STATION_ID[TIMEOUT] = "1";
+    tPend = xTaskGetTickCount();
+  }
+  else if (rstTmt)
+  {
+    //Serial.println("NO TIMEOUT");
+    *fb->STATION_ID[TIMEOUT] = "0";
+    tPend = xTaskGetTickCount();
   }
 }
 

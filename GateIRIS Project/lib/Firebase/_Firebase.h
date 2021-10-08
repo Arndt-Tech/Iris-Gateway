@@ -21,8 +21,9 @@
 #define RETURN 1
 #define ISON 2
 #define ISCONNECTED 3
-#define FB_HUMIDITY 4
-#define FB_TEMPERATURE 5
+#define TIMEOUT 4
+#define FB_HUMIDITY 5
+#define FB_TEMPERATURE 6
 
 // Struct's
 typedef struct firestruct
