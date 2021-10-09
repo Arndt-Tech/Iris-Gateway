@@ -49,3 +49,25 @@ bool readStation(networkFirebase *fb)
   }
   return 0;
 }
+
+void stationSeeker(networkFirebase *fb)
+{
+  if (!readStation(fb))
+    Serial.println("ERROR");
+}
+
+void setStatus(networkFirebase *fb)
+{
+  FirebaseData FIREBASE_ISCONN;
+  if (*fb->STATION_ID[TIMEOUT])
+  {
+    *fb->STATION_ID[TIMEOUT] = 0;
+    for (uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
+      if (!fb->STATION_ID[i][ISCONNECTED])
+        Firebase.setBool(FIREBASE_ISCONN, CENTER_ISCONN_PREPROCESS, false);
+  }
+  else
+    for (uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
+      if (fb->STATION_ID[i][ISCONNECTED])
+        Firebase.setBool(FIREBASE_ISCONN, CENTER_ISCONN_PREPROCESS, true);
+}

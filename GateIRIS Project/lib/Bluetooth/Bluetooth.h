@@ -12,14 +12,9 @@
 #include "esp_gap_bt_api.h"
 #include "esp_bt_main.h"
 #include "specialFunc.h"
-
-// Dados para comunicar
 #include "_LoRa.h"
 #include "_WiFi.h"
 #include "chipID.h"
-
-// Pino de leitura analógica
-#define pinAnalog 26
 
 // ID's
 #define SERVICE_UUID "4fafc201-1fb5-459e-8fcc-c5c9c331914b"           // ID serviço
@@ -49,6 +44,8 @@ String getData(); // Recebe dados com callback
 
 // Send Data
 String writeBT(String dados); // envia dados via bluetooth
+void getWiFi(networkWiFi *wifi);
+void getFirebase(networkLora *gtw, networkFirebase *fb);
 
 // Connect
 void waitingBT();           // Aguarda bluetooth conectar

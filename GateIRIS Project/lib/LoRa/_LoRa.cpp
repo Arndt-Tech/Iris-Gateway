@@ -13,7 +13,7 @@ void setupLoRa(networkLora *gtw)
   }
   LoRa.enableCrc();
   gtw->stationCursor = 0;
-  gtw->packSize = 0;
+  gtw->sendPacket.packetSize = 0;
 }
 
 void runningLoRa(networkLora *gtw, networkFirebase *fb)
@@ -25,7 +25,7 @@ void runningLoRa(networkLora *gtw, networkFirebase *fb)
     send_LoRa_Message(gtw, fb);
     tLoRaSend = xTaskGetTickCount();
   }
-  gtw->packSize = LoRa.parsePacket();
+  gtw->sendPacket.packetSize = LoRa.parsePacket();
   receive_LoRa_Message(gtw, fb);
   gtw->stationCursor += 1;
   if (gtw->stationCursor >= fb->TOTAL_STATIONS)
@@ -35,14 +35,12 @@ void runningLoRa(networkLora *gtw, networkFirebase *fb)
 
 void send_LoRa_Message(networkLora *gtw, networkFirebase *fb)
 {
-  uint8_t packLen = sizeof(*fb->STATION_ID[gtw->stationCursor]) +
-                    sizeof(gtw->localAddr) +
-                    sizeof(gtw->isOn) +
-                    sizeof(packLen);
+  gtw->sendPacket.packetSize = sizeof(*fb->STATION_ID[gtw->stationCursor]) +
+                               sizeof(gtw->sendPacket) - 2;
   if (!fb->STATION_ID[gtw->stationCursor][ISON])
-    gtw->isOn = 0;
+    gtw->sendPacket.isOn = 0;
   else if (fb->STATION_ID[gtw->stationCursor][ISON])
-    gtw->isOn = 1;
+    gtw->sendPacket.isOn = 1;
   LoRa.beginPacket();
   // Destino Addr
   LoRa.write(*fb->STATION_ID[gtw->stationCursor]);
@@ -50,67 +48,65 @@ void send_LoRa_Message(networkLora *gtw, networkFirebase *fb)
   LoRa.write(*fb->STATION_ID[gtw->stationCursor] >> 16 & 0xFF);
   LoRa.write(*fb->STATION_ID[gtw->stationCursor] >> 24 & 0xFF);
   // Local Addr
-  LoRa.write(gtw->localAddr);
-  LoRa.write(gtw->localAddr >> 8 & 0xFF);
-  LoRa.write(gtw->localAddr >> 16 & 0xFF);
-  LoRa.write(gtw->localAddr >> 24 & 0xFF);
+  LoRa.write(gtw->sendPacket.localAddr);
+  LoRa.write(gtw->sendPacket.localAddr >> 8 & 0xFF);
+  LoRa.write(gtw->sendPacket.localAddr >> 16 & 0xFF);
+  LoRa.write(gtw->sendPacket.localAddr >> 24 & 0xFF);
   // Estado
-  LoRa.write(gtw->isOn);
+  LoRa.write(gtw->sendPacket.isOn);
   // Tamanho
-  LoRa.write(packLen);
+  LoRa.write(gtw->sendPacket.packetSize);
   // Fim
   LoRa.endPacket();
-  gtw->packSize = packLen;
   // Seto a flag pendência de retorno da estação
   fb->STATION_ID[gtw->stationCursor][RETURN] = 1;
 }
 
 String receive_LoRa_Message(networkLora *gtw, networkFirebase *fb)
 {
-  if (gtw->packSize == 0)
+  if (gtw->sendPacket.packetSize == 0)
     return "[ERR-LORA:NO PACKAGE]";
-  _loraData aux_data;
   for (register int i = 0; i < 4; i++)
-    aux_data.dest_addr[i] = LoRa.read();
+    gtw->receivedPacket.dest_addr[i] = LoRa.read();
   for (register int i = 0; i < 4; i++)
-    aux_data.sender_addr[i] = LoRa.read();
+    gtw->receivedPacket.sender_addr[i] = LoRa.read();
   for (int i = 0; i < fb->TOTAL_STATIONS; i++)
   {
-    if (asm_addr(aux_data.sender_addr) == *fb->STATION_ID[i])
+    if (asm_addr(gtw->receivedPacket.sender_addr) == *fb->STATION_ID[i])
     {
-      aux_data.fSender = 1;
-      aux_data.iterator = i;
+      gtw->receivedPacket.fSender = 1;
+      gtw->receivedPacket.iterator = i;
       break;
     }
   }
-  if (asm_addr(aux_data.dest_addr) != gtw->localAddr || aux_data.fSender == 0)
+  if (asm_addr(gtw->receivedPacket.dest_addr) != gtw->sendPacket.localAddr || gtw->receivedPacket.fSender == 0)
     return "[ERR-LORA:IGNORED PACKAGE]"; // Pacote ignorado
-  aux_data.aux_hmdt = LoRa.read();
-  aux_data.aux_temp[0] = LoRa.read();
-  aux_data.aux_temp[1] = LoRa.read();
-  aux_data.packageLength = LoRa.read();
-  if (aux_data.packageLength != gtw->packSize)
+  gtw->receivedPacket.aux_hmdt = LoRa.read();
+  gtw->receivedPacket.aux_temp[0] = LoRa.read();
+  gtw->receivedPacket.aux_temp[1] = LoRa.read();
+  gtw->receivedPacket.packageLength = LoRa.read();
+  if (gtw->receivedPacket.packageLength != gtw->sendPacket.packetSize)
     return "[ERR-LORA:INCONSISTENT PACKAGE]"; // Pacote inconsistente
-  org_FB_data(&aux_data, fb);
-  Serial.println("Destino: " + String(asm_addr(aux_data.dest_addr)));
-  Serial.println("Remetente: " + String(asm_addr(aux_data.sender_addr)));
-  Serial.println("Umidade: " + String(fb->STATION_ID[aux_data.iterator][FB_HUMIDITY]));
-  Serial.println("Temperatura: " + String(fb->STATION_ID[aux_data.iterator][FB_TEMPERATURE]));
-  Serial.println("Tamanho informado: " + String(aux_data.packageLength));
-  Serial.println("Tamanho identificado: " + String(gtw->packSize));
+  org_FB_data(gtw, fb);
+  Serial.println("Destino: " + String(asm_addr(gtw->receivedPacket.dest_addr)));
+  Serial.println("Remetente: " + String(asm_addr(gtw->receivedPacket.sender_addr)));
+  Serial.println("Umidade: " + String(fb->STATION_ID[gtw->receivedPacket.iterator][FB_HUMIDITY]));
+  Serial.println("Temperatura: " + String(fb->STATION_ID[gtw->receivedPacket.iterator][FB_TEMPERATURE]));
+  Serial.println("Tamanho informado: " + String(gtw->receivedPacket.packageLength));
+  Serial.println("Tamanho identificado: " + String(gtw->sendPacket.packetSize));
   Serial.println("");
   return "";
 }
 
-void org_FB_data(_loraData *__data, networkFirebase *fb)
+void org_FB_data(networkLora *gtw, networkFirebase *fb)
 {
   uint16_t _aux_temp = 0;
-  _aux_temp |= __data->aux_temp[0] & 0xFF;
-  _aux_temp |= __data->aux_temp[1] << 8 & 0xFF;
+  _aux_temp |= gtw->receivedPacket.aux_temp[0] & 0xFF;
+  _aux_temp |= gtw->receivedPacket.aux_temp[1] << 8 & 0xFF;
 
-  fb->STATION_ID[__data->iterator][RETURN] = 0;
-  fb->STATION_ID[__data->iterator][FB_HUMIDITY] = __data->aux_hmdt;
-  fb->STATION_ID[__data->iterator][FB_TEMPERATURE] = _aux_temp / 10;
+  fb->STATION_ID[gtw->receivedPacket.iterator][RETURN] = 0;
+  fb->STATION_ID[gtw->receivedPacket.iterator][FB_HUMIDITY] = gtw->receivedPacket.aux_hmdt;
+  fb->STATION_ID[gtw->receivedPacket.iterator][FB_TEMPERATURE] = _aux_temp;
 }
 
 void verify_LoRa_Timeout(networkFirebase *fb)

@@ -35,8 +35,8 @@ class CallbackRX : public BLECharacteristicCallbacks
     std::string BT_rxData = characteristic_RX->getValue();
     if (BT_rxData.length() > 0)
     {
-      for (int i = 0; i < BT_rxData.length(); i++)
-        auxPackBT += (char)(BT_rxData[i]);
+      for (register uint8_t i = 0; i < BT_rxData.length(); i++)
+        auxPackBT += (uint8_t)(BT_rxData[i]);
       if (auxPackBT == oldPackBT)
         return;
       else if (auxPackBT != oldPackBT)
@@ -49,17 +49,10 @@ class CallbackRX : public BLECharacteristicCallbacks
 };
 
 // Funções
-String randomize_ID_BT()
-{
-  randomSeed(analogRead(pinAnalog));
-  return String("IRIStation - " + String(random(9999), DEC));
-}
 
 void setupBluetooth()
 {
-  pinMode(pinAnalog, INPUT);
-
-  BLEDevice::init(randomize_ID_BT().c_str());
+  BLEDevice::init("GateIRIS");
 
   // Cria server
   serverBT = BLEDevice::createServer();
@@ -101,7 +94,7 @@ void waitingBT() // Aguarda bluetooth conectar
   while (!connectedBT)
   {
     Serial.print(".");
-    delay(500);
+    vTaskDelay(500);
   }
   Serial.println("Bluetooth conectado!");
 }
@@ -125,10 +118,10 @@ void waitingREQUEST() // Aguarda requisição do clientAPP
     refreshConnectionBT();
     if (connectedBT)
       Serial.println("Esperando requisição... ");
-    delay(250);
+    vTaskDelay(250);
   } while (!getRequestBT());
   Serial.println("Requisição aceita: " + String(getRequestBT()));
-  delay(1000);
+  vTaskDelay(1000);
 }
 
 void sendREQUEST() // Envia requisição para clientAPP
@@ -144,11 +137,11 @@ String writeBT(String dados)
   unsigned long timeBT = 0;
   if (connectedBT)
   {
-    if ((millis() - timeBT) > 4)
+    if ((xTaskGetTickCount() - timeBT) > 4)
     {
       characteristic_TX->setValue(dados.c_str());
       characteristic_TX->notify();
-      timeBT = millis();
+      timeBT = xTaskGetTickCount();
     }
     return dados;
   }
@@ -185,11 +178,7 @@ bool getRequestBT()
           return 1;
         }
         else
-        {
-          ESP.restart();
-          packBT = "";
-          return 0;
-        }
+          resetModule();
       }
     }
   }
@@ -201,7 +190,7 @@ void refreshConnectionBT()
   if (!connectedBT && oldDeviceConnected)
   {
     Serial.println("Bluetooth desconectado!");
-    delay(500);
+    vTaskDelay(500);
     packBT = ""; // Limpa o buffer
     serverBT->startAdvertising();
     oldDeviceConnected = connectedBT;
@@ -213,6 +202,22 @@ void refreshConnectionBT()
     Serial.println("Bluetooth conectado!");
     oldDeviceConnected = connectedBT;
   }
+}
+
+void getWiFi(networkWiFi *wifi)
+{
+  writeBT(APP_SENDS_SSID);
+  wifi->SSID = getData();
+  writeBT(APP_SENDS_PASSWORD);
+  wifi->PASSWORD = getData();
+}
+
+void getFirebase(networkLora *gtw, networkFirebase *fb)
+{
+  writeBT(APP_SENDS_USERID);
+  fb->USER_ID = getData();
+  gtw->sendPacket.localAddr = atol(writeBT(String(getChipID())).c_str());
+  fb->GATEWAY_ID = gtw->sendPacket.localAddr;
 }
 
 void bluetoothConfig()

@@ -1,4 +1,4 @@
-#include "generalTasks.h"
+#include "systemFunctions.h"
 
 networkFirebase server;
 networkLora gateway;
@@ -7,20 +7,11 @@ networkWiFi net;
 
 void setup()
 {
-  configBegin();
-  setupOLED();
-  setupDataSystem(&gateway, &net, &server);
-  setupFirebase(&server);
-  setupLoRa(&gateway);
-  setupMultiCore(0);
-  //setupWatchdogTimer(time(20));  --> estabilizar
+  configBegin(&gateway, &net, &server);
 }
 
 void loop()
 {
  
-  //timerWrite(WDT, 0);
-  dataBar("3", server.TOTAL_STATIONS, true, true);
-  stationSeeker(&server); 
-  setStatus(&server); 
+  //timerWrite(WDT, 0); 
 }

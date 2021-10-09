@@ -39,5 +39,7 @@ typedef struct firestruct
 // Funções
 void setupFirebase(networkFirebase *fb);
 bool readStation(networkFirebase *fb);
+void setStatus(networkFirebase *fb);
+void stationSeeker(networkFirebase *fb);
 
 #endif

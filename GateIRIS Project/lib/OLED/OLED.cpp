@@ -19,7 +19,7 @@ void setupOLED()
   display.setFont(Dialog_plain_12);
   display.drawString(64, 41, "GateIRIS");
   display.display();
-  delay(3000);
+  vTaskDelay(3000);
 }
 
 void dataBar(String icon, uint8_t stations, bool commit, bool clear)
@@ -48,7 +48,7 @@ void runnigSystem(networkLora *gtw, bool commit, bool clear)
   display.setTextAlignment(TEXT_ALIGN_LEFT);
   display.setFont(Dialog_plain_12);
   display.drawString(0, 25, "Gateway: ");
-  display.drawString(0, 45, "Local: " + String(gtw->localAddr));
+  display.drawString(0, 45, "Local: " + String(gtw->sendPacket.localAddr));
   if (commit)
     display.display();
 }
