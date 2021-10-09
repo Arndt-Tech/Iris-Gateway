@@ -29,7 +29,7 @@ bool readStation(networkFirebase *fb)
         if (st < MAX_STATIONS)
         {
           *fb->STATION_ID[st] = atol(value.value.c_str());
-          fb->STATION_ID[st][ISON] = Firebase.getBool(FIREBASE_DATA, CENTER_ISON_PREPROCESS);
+          Firebase.getBool(FIREBASE_DATA, CENTER_ISON_PREPROCESS, &fb->STATION_ID[st][ISON]);
           st += 1;
         }
         else
