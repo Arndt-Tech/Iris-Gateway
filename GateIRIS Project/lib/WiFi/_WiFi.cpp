@@ -4,25 +4,24 @@
 // Funções
 bool connectWifi(networkWiFi *wifi)
 {
+  uint8_t t = 1;
   static unsigned long connectWifi = 0;
-  int t = 1, min = 1;
   WiFi.begin(wifi->SSID.c_str(), wifi->PASSWORD.c_str());
   Serial.print("Conectando em: ");
   Serial.println(wifi->SSID.c_str());
   while (WiFi.status() != WL_CONNECTED)
   {
-    if ((millis() - connectWifi) > 5000)
+    if ((xTaskGetTickCount() - connectWifi) > 5000)
     {
       WiFi.begin(wifi->SSID.c_str(), wifi->PASSWORD.c_str());
 
       Serial.println("\nTentando conectar na rede");
       Serial.println(wifi->SSID);
-      Serial.print("Tentativa: " + String(t / (min * 2)));
-
+      Serial.println("Tentativa: " + String(t));
       t++;
       if (t > 12)
         return 0;
-      connectWifi = millis();
+      connectWifi = xTaskGetTickCount();
     }
   }
   wifi->LOCAL_IP = WiFi.localIP();
@@ -53,20 +52,20 @@ bool connectWifi(networkWiFi *wifi)
 
 void reconnectWiFi(networkWiFi *wifi) // TIMEOUT de 60 segundos
 {
+  uint8_t t = 1;
   static unsigned long tReconnectWifi = 0;
-  int t = 1, min = 1;
   while (WiFi.status() != WL_CONNECTED)
   {
-    if ((millis() - tReconnectWifi) > 5000)
+    if ((xTaskGetTickCount() - tReconnectWifi) > 5000)
     {
       WiFi.begin(wifi->SSID.c_str(), wifi->PASSWORD.c_str());
 
       Serial.println("\nReeconectando na rede " + String(wifi->SSID));
-      Serial.print("Tentativa: " + String(t / (min * 2)));
+      Serial.print("Tentativa: " + String(t));
       t++;
-      if (t > (12 * min))
+      if (t > 12)
         resetModule();
-      tReconnectWifi = millis();
+      tReconnectWifi = xTaskGetTickCount();
     }
   }
 }
@@ -92,7 +91,7 @@ String wifiStatusDebug(wl_status_t wfStatus)
   case 255:
     return ("WL_NO_SHIELD");
   default:
-    return ("UNKNOWN_ERR");
+    return ("WL_UNKNOWN_ERR");
   }
 }
 

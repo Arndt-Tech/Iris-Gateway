@@ -10,9 +10,9 @@
 #define FIREBASE_HOST "iris-24c17-default-rtdb.firebaseio.com"
 #define FIREBASE_AUTH "ZQlCp7oKTm7QYupuhh9b2C8pqajd3CoxGwK9iAbl"
 // Locais
-#define CENTER_ID_PREPROCESS "/Users/" + fb->USER_ID + "/Gateway/" + fb->GATEWAY_ID + "/Station/"
-#define CENTER_ISON_PREPROCESS "/Users/" + fb->USER_ID + "/Gateway/" + fb->GATEWAY_ID + "/Station/" + value.value + "/isOn/"
-#define CENTER_ISCONN_PREPROCESS "/Users/" + fb->USER_ID + "/Gateway/" + fb->GATEWAY_ID + "/Station/" + *fb->STATION_ID[i] + "/isConnected/"
+#define CENTER_ID_PREPROCESS "/Users/" + String(fb->USER_ID) + "/Gateway/" + String(fb->GATEWAY_ID) + "/Station/"
+#define CENTER_ISON_PREPROCESS "/Users/" + String(fb->USER_ID) + "/Gateway/" + String(fb->GATEWAY_ID) + "/Station/" + value.value + "/isOn/"
+#define CENTER_ISCONN_PREPROCESS "/Users/" + String(fb->USER_ID) + "/Gateway/" + String(fb->GATEWAY_ID) + "/Station/" + String(*fb->STATION_ID[i]) + "/isConnected/"
 // Inicializações
 #define INIT_MAX_STATIONS 10
 #define MAX_STATIONS ((INIT_MAX_STATIONS)/2)
@@ -30,8 +30,8 @@ typedef struct firestruct
 {
   // ID's
   String USER_ID;
-  String GATEWAY_ID;
-  String STATION_ID[INIT_MAX_STATIONS][INIT_PARAMETERS];
+  uint32_t GATEWAY_ID;
+  uint32_t STATION_ID[INIT_MAX_STATIONS][INIT_PARAMETERS];
   // Gerais
   uint16_t TOTAL_STATIONS;
 } networkFirebase;

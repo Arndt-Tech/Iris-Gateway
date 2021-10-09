@@ -35,20 +35,20 @@ void runningLoRa(networkLora *gtw, networkFirebase *fb)
 
 void send_LoRa_Message(networkLora *gtw, networkFirebase *fb)
 {
-  uint8_t packLen = sizeof(atol((*fb->STATION_ID[gtw->stationCursor]).c_str())) +
+  uint8_t packLen = sizeof(*fb->STATION_ID[gtw->stationCursor]) +
                     sizeof(gtw->localAddr) +
                     sizeof(gtw->isOn) +
                     sizeof(packLen);
-  if (fb->STATION_ID[gtw->stationCursor][ISON] == "false")
+  if (!fb->STATION_ID[gtw->stationCursor][ISON])
     gtw->isOn = 0;
-  else if (fb->STATION_ID[gtw->stationCursor][ISON] == "true")
+  else if (fb->STATION_ID[gtw->stationCursor][ISON])
     gtw->isOn = 1;
   LoRa.beginPacket();
   // Destino Addr
-  LoRa.write(atol((*fb->STATION_ID[gtw->stationCursor]).c_str()));
-  LoRa.write(atol((*fb->STATION_ID[gtw->stationCursor]).c_str()) >> 8 & 0xFF);
-  LoRa.write(atol((*fb->STATION_ID[gtw->stationCursor]).c_str()) >> 16 & 0xFF);
-  LoRa.write(atol((*fb->STATION_ID[gtw->stationCursor]).c_str()) >> 24 & 0xFF);
+  LoRa.write(*fb->STATION_ID[gtw->stationCursor]);
+  LoRa.write(*fb->STATION_ID[gtw->stationCursor] >> 8 & 0xFF);
+  LoRa.write(*fb->STATION_ID[gtw->stationCursor] >> 16 & 0xFF);
+  LoRa.write(*fb->STATION_ID[gtw->stationCursor] >> 24 & 0xFF);
   // Local Addr
   LoRa.write(gtw->localAddr);
   LoRa.write(gtw->localAddr >> 8 & 0xFF);
@@ -62,7 +62,7 @@ void send_LoRa_Message(networkLora *gtw, networkFirebase *fb)
   LoRa.endPacket();
   gtw->packSize = packLen;
   // Seto a flag pendência de retorno da estação
-  fb->STATION_ID[gtw->stationCursor][RETURN] = "1";
+  fb->STATION_ID[gtw->stationCursor][RETURN] = 1;
 }
 
 String receive_LoRa_Message(networkLora *gtw, networkFirebase *fb)
@@ -76,7 +76,7 @@ String receive_LoRa_Message(networkLora *gtw, networkFirebase *fb)
     aux_data.sender_addr[i] = LoRa.read();
   for (int i = 0; i < fb->TOTAL_STATIONS; i++)
   {
-    if (String(asm_addr(aux_data.sender_addr)) == *fb->STATION_ID[i])
+    if (asm_addr(aux_data.sender_addr) == *fb->STATION_ID[i])
     {
       aux_data.fSender = 1;
       aux_data.iterator = i;
@@ -108,9 +108,9 @@ void org_FB_data(_loraData *__data, networkFirebase *fb)
   _aux_temp |= __data->aux_temp[0] & 0xFF;
   _aux_temp |= __data->aux_temp[1] << 8 & 0xFF;
 
-  fb->STATION_ID[__data->iterator][RETURN] = "0";
-  fb->STATION_ID[__data->iterator][FB_HUMIDITY] = String(__data->aux_hmdt);
-  fb->STATION_ID[__data->iterator][FB_TEMPERATURE] = String((float)_aux_temp / 10, 1);
+  fb->STATION_ID[__data->iterator][RETURN] = 0;
+  fb->STATION_ID[__data->iterator][FB_HUMIDITY] = __data->aux_hmdt;
+  fb->STATION_ID[__data->iterator][FB_TEMPERATURE] = _aux_temp / 10;
 }
 
 void verify_LoRa_Timeout(networkFirebase *fb)
@@ -118,28 +118,28 @@ void verify_LoRa_Timeout(networkFirebase *fb)
   uint8_t rstTmt = 0;
   for (uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
   {
-    if (fb->STATION_ID[i][RETURN] == "1")
+    if (fb->STATION_ID[i][RETURN])
     {
       rstTmt = 0;
-      fb->STATION_ID[i][ISCONNECTED] = "f";
+      fb->STATION_ID[i][ISCONNECTED] = 0;
     }
-    else if (fb->STATION_ID[i][RETURN] == "0")
+    else if (!fb->STATION_ID[i][RETURN])
     {
       rstTmt = 1;
-      fb->STATION_ID[i][ISCONNECTED] = "t";
+      fb->STATION_ID[i][ISCONNECTED] = 1;
     }
   }
   static unsigned long tPend = 0;
   if ((xTaskGetTickCount() - tPend) >= loraTmt && !rstTmt)
   {
     //Serial.println("TIMEOUT");
-    *fb->STATION_ID[TIMEOUT] = "1";
+    *fb->STATION_ID[TIMEOUT] = 1;
     tPend = xTaskGetTickCount();
   }
   else if (rstTmt)
   {
     //Serial.println("NO TIMEOUT");
-    *fb->STATION_ID[TIMEOUT] = "0";
+    *fb->STATION_ID[TIMEOUT] = 0;
     tPend = xTaskGetTickCount();
   }
 }

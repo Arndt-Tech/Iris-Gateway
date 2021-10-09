@@ -21,11 +21,6 @@ bool readStation(networkFirebase *fb)
     uint16_t st = 0;
     FirebaseJson::IteratorValue value;
     uint16_t aux_TOTAL_STATIONS = fb->TOTAL_STATIONS;
-
-    String aux_STATION_ID[INIT_MAX_STATIONS];
-    for (uint8_t i = 0; i < aux_TOTAL_STATIONS; i++)
-      aux_STATION_ID[i] = *fb->STATION_ID[i];
-
     for (size_t i = 0; i < len; i++)
     {
       value = json->valueAt(i);
@@ -33,9 +28,8 @@ bool readStation(networkFirebase *fb)
       {
         if (st < MAX_STATIONS)
         {
-          *fb->STATION_ID[st] = value.value;
-          Firebase.get(FIREBASE_DATA, CENTER_ISON_PREPROCESS);
-          fb->STATION_ID[st][ISON] = FIREBASE_DATA.stringData();
+          *fb->STATION_ID[st] = atol(value.value.c_str());
+          fb->STATION_ID[st][ISON] = Firebase.getBool(FIREBASE_DATA, CENTER_ISON_PREPROCESS);
           st += 1;
         }
         else
@@ -45,10 +39,9 @@ bool readStation(networkFirebase *fb)
     fb->TOTAL_STATIONS = st;
     if (aux_TOTAL_STATIONS > fb->TOTAL_STATIONS)
     {
-      uint8_t iterator = 0;
-      *fb->STATION_ID[fb->TOTAL_STATIONS] = "";
+      *fb->STATION_ID[fb->TOTAL_STATIONS] = 0;
       for (uint8_t i = 0; i < INIT_PARAMETERS; i++)
-        fb->STATION_ID[fb->TOTAL_STATIONS][i] = "";
+        fb->STATION_ID[fb->TOTAL_STATIONS][i] = 0;
     }
     json->iteratorEnd();
     json->clear();

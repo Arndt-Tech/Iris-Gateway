@@ -18,6 +18,7 @@ void setup()
 
 void loop()
 {
+ 
   //timerWrite(WDT, 0);
   dataBar("3", server.TOTAL_STATIONS, true, true);
   stationSeeker(&server); 

@@ -11,18 +11,18 @@ void configBegin()
 void setupDataSystem(networkLora *gtw, networkWiFi *wifi, networkFirebase *fb)
 {
   bool inconsistent_data = 0;
-  if ((verify_EEPROM(loChID_min) && verify_EEPROM(ssid_min) && verify_EEPROM(password_min) && verify_EEPROM(UserID_min)))
+  if ((verifyEEPROM(loChID_min) && verifyEEPROM(ssid_min) && verifyEEPROM(password_min) && verifyEEPROM(UserID_min)))
   {
     Serial.println("Há dados na EEPROM");
-    gtw->localAddr = atol(read_EEPROM(loChID_min).c_str());
-    wifi->SSID = read_EEPROM(ssid_min);
-    wifi->PASSWORD = read_EEPROM(password_min);
-    fb->USER_ID = read_EEPROM(UserID_min);
-    fb->GATEWAY_ID = read_EEPROM(loChID_min);
+    gtw->localAddr = readEEPROM(loChID_min);
+    wifi->SSID = readStrEEPROM(ssid_min);
+    wifi->PASSWORD = readStrEEPROM(password_min);
+    fb->USER_ID = readStrEEPROM(UserID_min);
+    fb->GATEWAY_ID = readEEPROM(loChID_min);
     Serial.println("Dados lidos!");
     while (!connectWifi(wifi))
     {
-      Serial.println("Impossível conectar na rede");
+      Serial.println("\nImpossível conectar na rede");
       Serial.println("Reescreva o SSID e a SENHA");
       inconsistent_data = 1;
       setupBluetooth();
@@ -34,14 +34,14 @@ void setupDataSystem(networkLora *gtw, networkWiFi *wifi, networkFirebase *fb)
     if (inconsistent_data)
     {
       Serial.println("Dados salvos na EEPROM");
-      write_EEPROM(String(gtw->localAddr), loChID_min);
-      write_EEPROM(wifi->SSID, ssid_min);
-      write_EEPROM(wifi->PASSWORD, password_min);
-      write_EEPROM(fb->USER_ID, UserID_min);
+      writeEEPROM(gtw->localAddr, loChID_min);
+      writeStrEEPROM(wifi->SSID, ssid_min);
+      writeStrEEPROM(wifi->PASSWORD, password_min);
+      writeStrEEPROM(fb->USER_ID, UserID_min);
       resetModule();
     }
     Serial.println("Conectado na rede!");
-    delay(1000);
+    vTaskDelay(1000);
   }
   else
   {
@@ -51,19 +51,19 @@ void setupDataSystem(networkLora *gtw, networkWiFi *wifi, networkFirebase *fb)
     getWiFi(wifi);
     while (!connectWifi(wifi))
     {
-      Serial.println("Impossível conectar na rede");
+      Serial.println("\nImpossível conectar na rede");
       Serial.println("Reescreva o SSID e a SENHA");
       writeBT(CONNECTION_ERROR); // Não foi possível conectar no WIFI
       getWiFi(wifi);
     }
     writeBT(SUCCESSFULLY_CONNECTED);
     Serial.println("IRIS foi conectada com sucesso!");
-    write_EEPROM(String(gtw->localAddr), loChID_min);
-    write_EEPROM(wifi->SSID, ssid_min);
-    write_EEPROM(wifi->PASSWORD, password_min);
-    write_EEPROM(fb->USER_ID, UserID_min);
+    writeEEPROM(gtw->localAddr, loChID_min);
+    writeStrEEPROM(wifi->SSID, ssid_min);
+    writeStrEEPROM(wifi->PASSWORD, password_min);
+    writeStrEEPROM(fb->USER_ID, UserID_min);
     Serial.println("Dados salvos na EEPROM!");
-    delay(1000);
+    vTaskDelay(1000);
     resetModule();
   }
   bleDisable();
@@ -82,7 +82,7 @@ void getFirebase(networkLora *gtw, networkFirebase *fb)
   writeBT(APP_SENDS_USERID);
   fb->USER_ID = getData();
   gtw->localAddr = atol(writeBT(String(getChipID())).c_str());
-  fb->GATEWAY_ID = String(gtw->localAddr);
+  fb->GATEWAY_ID = gtw->localAddr;
 }
 
 void shift_vector(int cursor, int max, String *vector)
@@ -103,15 +103,15 @@ void stationSeeker(networkFirebase *fb)
 void setStatus(networkFirebase *fb)
 {
   FirebaseData FIREBASE_ISCONN;
-  if (*fb->STATION_ID[TIMEOUT] == "1")
+  if (*fb->STATION_ID[TIMEOUT])
   {
-    *fb->STATION_ID[TIMEOUT] == "0";
+    *fb->STATION_ID[TIMEOUT] = 0;
     for (uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
-      if (fb->STATION_ID[i][ISCONNECTED] == "f")
+      if (!fb->STATION_ID[i][ISCONNECTED])
         Firebase.setBool(FIREBASE_ISCONN, CENTER_ISCONN_PREPROCESS, false);
   }
   else
     for (uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
-      if (fb->STATION_ID[i][ISCONNECTED] == "t")
+      if (fb->STATION_ID[i][ISCONNECTED])
         Firebase.setBool(FIREBASE_ISCONN, CENTER_ISCONN_PREPROCESS, true);
 }
