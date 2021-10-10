@@ -34,6 +34,10 @@ typedef struct firestruct
   uint32_t STATION_ID[INIT_MAX_STATIONS][INIT_PARAMETERS];
   // Gerais
   uint16_t TOTAL_STATIONS;
+  // Dados
+  FirebaseData FIREBASE_IDS;
+  FirebaseData FIREBASE_DATA;
+  FirebaseData FIREBASE_ISCONN;
 } networkFirebase;
 
 // Funções

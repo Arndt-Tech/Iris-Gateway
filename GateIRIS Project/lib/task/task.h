@@ -5,6 +5,7 @@
 #include <Arduino.h>
 #include <FreeRTOS.h>
 #include "pinout.h"
+#include "Peripheral.h"
 #include "_LoRa.h"
 #include "OLED.h"
 #include "_Firebase.h"
@@ -22,7 +23,9 @@ extern networkLora gateway;
 void setupTasks();
 
 // Tasks
+void taskReset(void *pvParameters);
 void taskLoRa(void *pvParameters);
+void taskLoRaTimeout(void *pvParameters);
 void taskOled(void *pvParameters);
 void taskSeekStation(void *pvParameters);
 void taskStatusStation(void *pvParameters);

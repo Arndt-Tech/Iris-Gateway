@@ -19,7 +19,7 @@
 #define time(a) (uint64_t)(a * 1000000) // Tempo em segundos
 
 // Funções
-void configBegin(networkLora *gtw, networkWiFi *wifi, networkFirebase *fb);
-void setupDataSystem(networkLora *gtw, networkWiFi *wifi, networkFirebase *fb);
+void configBegin(networkBluetooth *ble, networkWiFi *wifi, networkFirebase *fb, networkLora *gtw);
+void setupDataSystem(networkBluetooth *ble, networkWiFi *wifi, networkFirebase *fb, networkLora *gtw);
 
 #endif

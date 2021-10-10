@@ -33,29 +33,45 @@
 #define CONNECTION_ERROR "!"
 #define SUCCESSFULLY_CONNECTED "&"
 
+// Struct's
+typedef struct ble
+{
+  BLEServer *serverBT = NULL;                  // Aloca server BT
+  BLECharacteristic *characteristic_TX = NULL; // Aloca característica BT_TX
+  BLECharacteristic *characteristic_RX = NULL; // Aloca característica BT_RX
+  uint32_t BT_rxData;                          // Recebimento callback
+  uint8_t connected;                           // Estado de conexão
+  uint8_t repeatDataFilter; 
+  String data;
+}networkBluetooth;
+
+// Externos
+extern networkBluetooth BLE;
+
 // Funções
+void setupBluetooth(networkBluetooth *ble);
+void callbackBLE(networkBluetooth *ble);
+
 // Setup
-void setupBluetooth();    // Inicializa bluetooth
-void bluetoothConfig();   // Configura bluetooth
-String randomize_ID_BT(); // Monta nome do bluetooth
+void bluetoothConfig(networkBluetooth *ble); // Configura bluetooth
 
 // Get Data
-String getData(); // Recebe dados com callback
+String getData(networkBluetooth *ble); // Recebe dados com callback
 
 // Send Data
-String writeBT(String dados); // envia dados via bluetooth
-void getWiFi(networkWiFi *wifi);
-void getFirebase(networkLora *gtw, networkFirebase *fb);
+String writeBT(networkBluetooth *ble, String dados); // envia dados via bluetooth
+void getWiFi(networkBluetooth *ble, networkWiFi *wifi);
+void getFirebase(networkBluetooth *ble, networkFirebase *fb, networkLora *gtw);
 
 // Connect
-void waitingBT();           // Aguarda bluetooth conectar
-void waitingSYNC();         // Aguarda sincronização da comunicação
-void refreshConnectionBT(); // Atualiza estado de conexão bluetooth com callback
+void waitingBT(networkBluetooth *ble);           // Aguarda bluetooth conectar
+void waitingSYNC(networkBluetooth *ble);         // Aguarda sincronização da comunicação
+void refreshConnectionBT(networkBluetooth *ble); // Atualiza estado de conexão bluetooth com callback
 
 // Request
-void waitingREQUEST(); // Aguarda requisição do clientAPP
-bool getRequestBT();   // Recebe requisição com callback
-void sendREQUEST();    // Envia requisição para clientAPP
+void waitingREQUEST(networkBluetooth *ble); // Aguarda requisição do clientAPP
+bool getRequestBT(networkBluetooth *ble); // Recebe requisição com callback
+void sendREQUEST(networkBluetooth *ble);    // Envia requisição para clientAPP
 
 // Disable
 void bleDisable();

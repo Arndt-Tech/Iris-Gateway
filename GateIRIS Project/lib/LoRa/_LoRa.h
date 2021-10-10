@@ -21,15 +21,14 @@
 #define loraTmt 10000
 
 // Struct's
-
-typedef struct
+typedef struct _lora
 {
   uint32_t localAddr;
   uint8_t isOn;
   uint8_t packetSize;
 } loraSend;
 
-typedef struct
+typedef struct __lora
 {
   uint8_t dest_addr[4], sender_addr[4];
   uint8_t fSender, iterator;
@@ -37,7 +36,7 @@ typedef struct
   uint16_t packageLength;
 } loraReceive;
 
-typedef struct _lora
+typedef struct lora
 {
   uint8_t stationCursor;
   loraSend sendPacket;

@@ -18,7 +18,6 @@ void setupLoRa(networkLora *gtw)
 
 void runningLoRa(networkLora *gtw, networkFirebase *fb)
 {
-  verify_LoRa_Timeout(fb);
   static unsigned long tLoRaSend = 0;
   if ((xTaskGetTickCount() - tLoRaSend) > INTERVAL)
   {
@@ -30,7 +29,6 @@ void runningLoRa(networkLora *gtw, networkFirebase *fb)
   gtw->stationCursor += 1;
   if (gtw->stationCursor >= fb->TOTAL_STATIONS)
     gtw->stationCursor = 0;
-  vTaskDelay(1);
 }
 
 void send_LoRa_Message(networkLora *gtw, networkFirebase *fb)
