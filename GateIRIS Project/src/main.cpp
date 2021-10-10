@@ -8,4 +8,9 @@ networkLora gateway;
 
 void setup() { configBegin(&BLE, &net, &server, &gateway); }
 
-void loop() {} //timerWrite(WDT, 0);
+void loop() 
+{
+  stationSeeker(&server);
+  setStatus(&server);
+  Serial.println("Heap: " + String(xPortGetFreeHeapSize()));
+} //timerWrite(WDT, 0);

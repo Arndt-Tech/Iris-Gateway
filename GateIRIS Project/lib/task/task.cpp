@@ -8,8 +8,6 @@ void setupTasks()
   xTaskCreatePinnedToCore(taskLoRa, "taskLora", STACK(4096), NULL, PRIORITY(5), NULL, CORE(0));
   xTaskCreatePinnedToCore(taskLoRaTimeout, "taskLoRaTimeout", STACK(2048), NULL, PRIORITY(5), NULL, CORE(0));
   xTaskCreatePinnedToCore(taskOled, "taskOled", STACK(2048), NULL, PRIORITY(3), NULL, CORE(1));
-  xTaskCreatePinnedToCore(taskSeekStation, "taskSeekStation", STACK(32768), NULL, PRIORITY(5), NULL, CORE(1));
-  xTaskCreatePinnedToCore(taskStatusStation, "taskStatusStation", STACK(32768), NULL, PRIORITY(5), NULL, CORE(1));
 }
 
 void taskReset(void *pvParameters)
@@ -45,23 +43,5 @@ void taskOled(void *pvParameters)
   {
     dataBar("3", server.TOTAL_STATIONS, true, true);
     vTaskDelay(10);
-  }
-}
-
-void taskSeekStation(void *pvParameters)
-{
-  while (1)
-  {
-    stationSeeker(&server);
-    vTaskDelay(1);
-  }
-}
-
-void taskStatusStation(void *pvParameters)
-{
-  while (1)
-  {
-    setStatus(&server);
-    vTaskDelay(1);
   }
 }
