@@ -8,9 +8,10 @@ networkLora gateway;
 
 void setup() { configBegin(&BLE, &net, &server, &gateway); }
 
-void loop() 
+void loop()
 {
-  stationSeeker(&server);
+  readStation(&server);
   setStatus(&server);
+  firestoreWrite(&server);
   Serial.println("Heap: " + String(xPortGetFreeHeapSize()));
 } //timerWrite(WDT, 0);

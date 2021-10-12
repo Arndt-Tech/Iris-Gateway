@@ -12,6 +12,7 @@ void setupLoRa(networkLora *gtw)
       ;
   }
   LoRa.enableCrc();
+  LoRa.setSpreadingFactor(12);
   gtw->stationCursor = 0;
   gtw->sendPacket.packetSize = 0;
 }
@@ -82,6 +83,10 @@ String receive_LoRa_Message(networkLora *gtw, networkFirebase *fb)
   gtw->receivedPacket.aux_hmdt = LoRa.read();
   gtw->receivedPacket.aux_temp[0] = LoRa.read();
   gtw->receivedPacket.aux_temp[1] = LoRa.read();
+  for (register int i = 0; i < 4; i++)
+    gtw->receivedPacket.latitude[i] = LoRa.read();
+  for (register int i = 0; i < 4; i++)
+    gtw->receivedPacket.longitude[i] = LoRa.read();
   gtw->receivedPacket.packageLength = LoRa.read();
   if (gtw->receivedPacket.packageLength != gtw->sendPacket.packetSize)
     return "[ERR-LORA:INCONSISTENT PACKAGE]"; // Pacote inconsistente
@@ -90,8 +95,11 @@ String receive_LoRa_Message(networkLora *gtw, networkFirebase *fb)
   Serial.println("Remetente: " + String(asm_addr(gtw->receivedPacket.sender_addr)));
   Serial.println("Umidade: " + String(fb->STATION_ID[gtw->receivedPacket.iterator][FB_HUMIDITY]));
   Serial.println("Temperatura: " + String(fb->STATION_ID[gtw->receivedPacket.iterator][FB_TEMPERATURE]));
+  Serial.println("Latitude: " + String(fb->STATION_ID[gtw->receivedPacket.iterator][FB_LATITUDE]));
+  Serial.println("Longitude: " + String(fb->STATION_ID[gtw->receivedPacket.iterator][FB_LONGITUDE]));
   Serial.println("Tamanho informado: " + String(gtw->receivedPacket.packageLength));
   Serial.println("Tamanho identificado: " + String(gtw->sendPacket.packetSize));
+  Serial.println("Sinal: " + String(LoRa.packetRssi()));
   Serial.println("");
   return "";
 }
@@ -99,12 +107,18 @@ String receive_LoRa_Message(networkLora *gtw, networkFirebase *fb)
 void org_FB_data(networkLora *gtw, networkFirebase *fb)
 {
   uint16_t _aux_temp = 0;
-  _aux_temp |= gtw->receivedPacket.aux_temp[0] & 0xFF;
-  _aux_temp |= gtw->receivedPacket.aux_temp[1] << 8 & 0xFF;
+  int32_t _latutide = 0, _longitude = 0;
+  _aux_temp |= gtw->receivedPacket.aux_temp[0];
+  _aux_temp |= gtw->receivedPacket.aux_temp[1] << 8;
+
+  _latutide = asm_addr(gtw->receivedPacket.latitude);
+  _longitude = asm_addr(gtw->receivedPacket.longitude);
 
   fb->STATION_ID[gtw->receivedPacket.iterator][RETURN] = 0;
   fb->STATION_ID[gtw->receivedPacket.iterator][FB_HUMIDITY] = gtw->receivedPacket.aux_hmdt;
   fb->STATION_ID[gtw->receivedPacket.iterator][FB_TEMPERATURE] = _aux_temp;
+  fb->STATION_ID[gtw->receivedPacket.iterator][FB_LATITUDE] = _latutide;
+  fb->STATION_ID[gtw->receivedPacket.iterator][FB_LONGITUDE] = _longitude;
 }
 
 void verify_LoRa_Timeout(networkFirebase *fb)
@@ -147,12 +161,3 @@ uint32_t asm_addr(uint8_t *addr)
   newAddr |= addr[3] << 24;
   return newAddr;
 }
-/*
-  Serial.println("Recebido de: 0x" + String(sender, HEX));
-  Serial.println("Enviado para: 0x" + String(requisitor, HEX));
-  Serial.println("Tamanho do pacote: " + String(incomingLength));
-  Serial.println("Pacote recebido: " + incoming);
-  Serial.println("dBm: " + String(LoRa.packetRssi()));
-  Serial.println("Ruido: " + String(LoRa.packetSnr()));
-  Serial.println();
-  */

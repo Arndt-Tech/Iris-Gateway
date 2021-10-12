@@ -31,6 +31,7 @@ typedef struct _lora
 typedef struct __lora
 {
   uint8_t dest_addr[4], sender_addr[4];
+  uint8_t latitude[4], longitude[4];
   uint8_t fSender, iterator;
   uint8_t aux_hmdt, aux_temp[2];
   uint16_t packageLength;
