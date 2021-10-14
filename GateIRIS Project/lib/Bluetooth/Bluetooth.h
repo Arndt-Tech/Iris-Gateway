@@ -43,6 +43,7 @@ typedef struct ble
   uint8_t connected;                           // Estado de conexão
   uint8_t repeatDataFilter; 
   String data;
+  esp_bt_controller_status_t status;
 }networkBluetooth;
 
 // Externos

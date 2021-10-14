@@ -25,11 +25,13 @@
 #define RETURN 1
 #define ISON 2
 #define ISCONNECTED 3
-#define TIMEOUT 4
+#define LORA_SIGNAL 4
 #define FB_HUMIDITY 5
 #define FB_TEMPERATURE 6
 #define FB_LATITUDE 7
 #define FB_LONGITUDE 8
+// Outros
+#define TIME(a)  (unsigned long)((a) * 60000)
 
 // Struct's
 typedef struct firestruct
@@ -37,15 +39,18 @@ typedef struct firestruct
   // Configurações
   FirebaseConfig config;
   FirebaseAuth auth;
-  // ID's
-  String USER_ID;
-  uint32_t GATEWAY_ID;
-  uint32_t STATION_ID[INIT_MAX_STATIONS][INIT_PARAMETERS];
-  // Gerais
-  uint16_t TOTAL_STATIONS;
   // Dados
   FirebaseData FIREBASE_IDS;
   FirebaseData FIREBASE_DATA;
+  // ID's
+  String USER_ID;
+  uint32_t GATEWAY_ID;
+  int32_t STATION_ID[INIT_MAX_STATIONS][INIT_PARAMETERS];
+  // Gerais
+  uint16_t TOTAL_STATIONS;
+  // Outros
+  uint8_t STATUS;
+  uint8_t TIMEOUT;
 } networkFirebase;
 
 // Funções
@@ -53,6 +58,7 @@ void setupFirebase(networkFirebase *fb);
 bool readStation(networkFirebase *fb);
 void setStatus(networkFirebase *fb);
 void firestoreWrite(networkFirebase *fb);
-void teste(networkFirebase *fb);
+void tokenStatus(token_info_t token);
+void tokenType(token_info_t token);
 
 #endif

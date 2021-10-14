@@ -91,34 +91,21 @@ String receive_LoRa_Message(networkLora *gtw, networkFirebase *fb)
   if (gtw->receivedPacket.packageLength != gtw->sendPacket.packetSize)
     return "[ERR-LORA:INCONSISTENT PACKAGE]"; // Pacote inconsistente
   org_FB_data(gtw, fb);
-  Serial.println("Destino: " + String(asm_addr(gtw->receivedPacket.dest_addr)));
-  Serial.println("Remetente: " + String(asm_addr(gtw->receivedPacket.sender_addr)));
-  Serial.println("Umidade: " + String(fb->STATION_ID[gtw->receivedPacket.iterator][FB_HUMIDITY]));
-  Serial.println("Temperatura: " + String(fb->STATION_ID[gtw->receivedPacket.iterator][FB_TEMPERATURE]));
-  Serial.println("Latitude: " + String(fb->STATION_ID[gtw->receivedPacket.iterator][FB_LATITUDE]));
-  Serial.println("Longitude: " + String(fb->STATION_ID[gtw->receivedPacket.iterator][FB_LONGITUDE]));
-  Serial.println("Tamanho informado: " + String(gtw->receivedPacket.packageLength));
-  Serial.println("Tamanho identificado: " + String(gtw->sendPacket.packetSize));
-  Serial.println("Sinal: " + String(LoRa.packetRssi()));
-  Serial.println("");
   return "";
 }
 
 void org_FB_data(networkLora *gtw, networkFirebase *fb)
 {
   uint16_t _aux_temp = 0;
-  int32_t _latutide = 0, _longitude = 0;
   _aux_temp |= gtw->receivedPacket.aux_temp[0];
   _aux_temp |= gtw->receivedPacket.aux_temp[1] << 8;
 
-  _latutide = asm_addr(gtw->receivedPacket.latitude);
-  _longitude = asm_addr(gtw->receivedPacket.longitude);
-
   fb->STATION_ID[gtw->receivedPacket.iterator][RETURN] = 0;
+  fb->STATION_ID[gtw->receivedPacket.iterator][LORA_SIGNAL] = LoRa.packetRssi();
   fb->STATION_ID[gtw->receivedPacket.iterator][FB_HUMIDITY] = gtw->receivedPacket.aux_hmdt;
   fb->STATION_ID[gtw->receivedPacket.iterator][FB_TEMPERATURE] = _aux_temp;
-  fb->STATION_ID[gtw->receivedPacket.iterator][FB_LATITUDE] = _latutide;
-  fb->STATION_ID[gtw->receivedPacket.iterator][FB_LONGITUDE] = _longitude;
+  fb->STATION_ID[gtw->receivedPacket.iterator][FB_LATITUDE] = asm_addr(gtw->receivedPacket.latitude);
+  fb->STATION_ID[gtw->receivedPacket.iterator][FB_LONGITUDE] = asm_addr(gtw->receivedPacket.longitude);
 }
 
 void verify_LoRa_Timeout(networkFirebase *fb)
@@ -141,13 +128,13 @@ void verify_LoRa_Timeout(networkFirebase *fb)
   if ((xTaskGetTickCount() - tPend) >= loraTmt && !rstTmt)
   {
     //Serial.println("TIMEOUT");
-    *fb->STATION_ID[TIMEOUT] = 1;
+    fb->TIMEOUT = 1;
     tPend = xTaskGetTickCount();
   }
   else if (rstTmt)
   {
     //Serial.println("NO TIMEOUT");
-    *fb->STATION_ID[TIMEOUT] = 0;
+    fb->TIMEOUT = 0;
     tPend = xTaskGetTickCount();
   }
 }

@@ -17,6 +17,7 @@ typedef struct _wifi
   IPAddress SUBNET_MASK;
   IPAddress GATEWAY_IP;
   IPAddress DNS_IP;
+  int8_t SIGNAL;
 } networkWiFi;
 
 // Funções

@@ -3,12 +3,24 @@
 
 void setupFirebase(networkFirebase *fb)
 {
+  Serial.println("Inicializando Firebase");
   fb->config.database_url = FIREBASE_HOST;
   fb->config.api_key = FIREBASE_API;
   fb->auth.user.email = "danielarndt959@gmail.com";
   fb->auth.user.password = "tst123";
   Firebase.begin(&fb->config, &fb->auth);
   Firebase.reconnectWiFi(true);
+  Serial.println("Gerando token");
+  while (!Firebase.ready())
+  {
+    Serial.print(".");
+    delay(500);
+  }
+  tokenStatus(Firebase.authTokenInfo());
+  tokenType(Firebase.authTokenInfo());
+  if (Firebase.ready())
+    Serial.println("Token: \n" + String(Firebase.getToken()) + "\n");
+  
   readStation(fb);
 }
 
@@ -53,55 +65,124 @@ bool readStation(networkFirebase *fb)
     json->clear();
     return 1;
   }
-  Serial.println("Error -> " + fb->FIREBASE_IDS.errorReason());
   return 0;
 }
 
 void setStatus(networkFirebase *fb)
 {
-  if (*fb->STATION_ID[TIMEOUT])
+  if (Firebase.ready())
   {
-    *fb->STATION_ID[TIMEOUT] = 0;
-    for (uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
-      if (!fb->STATION_ID[i][ISCONNECTED])
-        Firebase.RTDB.setBool(&fb->FIREBASE_DATA, CENTER_ISCONN_RTDB, false);
+    if (fb->TIMEOUT)
+    {
+      fb->TIMEOUT = 0;
+      for (uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
+        if (!fb->STATION_ID[i][ISCONNECTED])
+          Firebase.RTDB.setBool(&fb->FIREBASE_DATA, CENTER_ISCONN_RTDB, false);
+    }
+    else 
+      for (uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
+        if (fb->STATION_ID[i][ISCONNECTED])
+          Firebase.RTDB.setBool(&fb->FIREBASE_DATA, CENTER_ISCONN_RTDB, true);
   }
-  else
-    for (uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
-      if (fb->STATION_ID[i][ISCONNECTED])
-        Firebase.RTDB.setBool(&fb->FIREBASE_DATA, CENTER_ISCONN_RTDB, true);
 }
 
 void firestoreWrite(networkFirebase *fb)
 {
-  static unsigned long tFSDB;
-  static uint8_t stationCursor = 0;
-  if (Firebase.ready() && (xTaskGetTickCount() - tFSDB) > 60000)
+  if (Firebase.ready() && fb->TOTAL_STATIONS > 0)
   {
-    tFSDB = xTaskGetTickCount();
-    uint16_t __temp = fb->STATION_ID[stationCursor][FB_TEMPERATURE];
-    double __latitude = fb->STATION_ID[stationCursor][FB_LATITUDE];
-    double __longitude = fb->STATION_ID[stationCursor][FB_LONGITUDE];
-    FirebaseJson content;
-    String documentPath = CENTER_COLLECTION;
-    std::vector<struct fb_esp_firestore_document_write_t> writes;
-    struct fb_esp_firestore_document_write_t update_write;
-    update_write.type = fb_esp_firestore_document_write_type_update;
-    content.set("fields/temperature/doubleValue", (float)__temp / 10);
-    content.set("fields/humidity/integerValue", fb->STATION_ID[stationCursor][FB_HUMIDITY]);
-    content.set("fields/latLong/geoPointValue/latitude", __latitude / -1000000);
-    content.set("fields/latLong/geoPointValue/longitude", __longitude / -1000000);
-    update_write.update_document_content = content.raw();
-    update_write.update_document_path = documentPath.c_str();
-    update_write.update_masks = "temperature,humidity,latLong";
-    writes.push_back(update_write);
-    if (Firebase.Firestore.commitDocument(&fb->FIREBASE_DATA, PROJECT_ID, "", writes, ""))
-      Serial.printf("ok\n%s\n\n", fb->FIREBASE_DATA.payload().c_str());
-    else
-      Serial.println(fb->FIREBASE_DATA.errorReason());
-    stationCursor += 1;
-    if (stationCursor >= fb->TOTAL_STATIONS)
-      stationCursor = 0;
+    static unsigned long tFSDB;
+    static uint8_t stationCursor = 0;
+    if ((xTaskGetTickCount() - tFSDB) > TIME(5))
+    {
+      tFSDB = xTaskGetTickCount();
+      uint16_t __temp = fb->STATION_ID[stationCursor][FB_TEMPERATURE];
+      double __latitude = fb->STATION_ID[stationCursor][FB_LATITUDE];
+      double __longitude = fb->STATION_ID[stationCursor][FB_LONGITUDE];
+      FirebaseJson content;
+      String documentPath = CENTER_COLLECTION;
+      std::vector<struct fb_esp_firestore_document_write_t> writes;
+      struct fb_esp_firestore_document_write_t update_write;
+      update_write.type = fb_esp_firestore_document_write_type_update;
+      content.set("fields/temperature/doubleValue", (float)__temp / 10);
+      content.set("fields/humidity/integerValue", fb->STATION_ID[stationCursor][FB_HUMIDITY]);
+      content.set("fields/latLong/geoPointValue/latitude", __latitude / -1000000);
+      content.set("fields/latLong/geoPointValue/longitude", __longitude / -1000000);
+      update_write.update_document_content = content.raw();
+      update_write.update_document_path = documentPath.c_str();
+      update_write.update_masks = "temperature,humidity,latLong";
+      writes.push_back(update_write);
+      if (Firebase.Firestore.commitDocument(&fb->FIREBASE_DATA, PROJECT_ID, "", writes, ""))
+        Serial.printf("ok\n%s\n\n", fb->FIREBASE_DATA.payload().c_str());
+      else
+        Serial.println(fb->FIREBASE_DATA.errorReason());
+      stationCursor += 1;
+      if (stationCursor >= fb->TOTAL_STATIONS)
+        stationCursor = 0;
+    }
+  }
+}
+
+void tokenStatus(token_info_t token)
+{
+  switch (token.status)
+  {
+  case token_status_uninitialized:
+    Serial.println("Token nao inicializado.");
+    break;
+
+  case token_status_on_initialize:
+    Serial.println("Token inicializando.");
+    break;
+
+  case token_status_on_signing:
+    Serial.println("Token em assinatura.");
+    break;
+
+  case token_status_on_request:
+    Serial.println("Token em solicitacao.");
+    break;
+
+  case token_status_on_refresh:
+    Serial.println("Token atualizando.");
+    break;
+
+  case token_status_ready:
+    Serial.println("Token pronto.");
+    break;
+
+  case token_status_error:
+    Serial.println("Erro ao inicializar token.");
+    break;
+  }
+}
+
+void tokenType(token_info_t token)
+{
+  switch (token.type)
+  {
+  case token_type_undefined:
+    Serial.println("Token de tipo indefinido.");
+    break;
+
+  case token_type_legacy_token:
+    Serial.println("Token de tipo legado.");
+    break;
+
+  case token_type_id_token:
+    Serial.println("Token de tipo ID.");
+    break;
+
+  case token_type_custom_token:
+    Serial.println("Token de tipo customizado.");
+    break;
+
+  case token_type_oauth2_access_token:
+    Serial.println("Token de tipo OAuth2.0.");
+    break;
+
+  case token_type_refresh_token:
+    Serial.println("Token de tipo atualizacao.");
+    break;
   }
 }
 

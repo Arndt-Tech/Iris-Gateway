@@ -4,8 +4,10 @@
 // Funções
 void configBegin(networkBluetooth *ble, networkWiFi *wifi, networkFirebase *fb, networkLora *gtw)
 {
+  pinMode(resetEEPROM, INPUT);
   Serial.begin(115200);
   EEPROM.begin(EEPROM_SIZE);
+  xTaskCreatePinnedToCore(taskReset, "taskReset", STACK(2048), NULL, PRIORITY(4), NULL, CORE(1));
   setupOLED();
   setupDataSystem(ble, wifi, fb, gtw);
   setupFirebase(fb);
@@ -15,7 +17,7 @@ void configBegin(networkBluetooth *ble, networkWiFi *wifi, networkFirebase *fb, 
 
 void setupDataSystem(networkBluetooth *ble, networkWiFi *wifi, networkFirebase *fb, networkLora *gtw)
 {
-  bool inconsistent_data = 0;
+  uint8_t inconsistent_data = 0;
   if ((verifyEEPROM(loChID_min) && verifyEEPROM(ssid_min) && verifyEEPROM(password_min) && verifyEEPROM(UserID_min)))
   {
     Serial.println("Há dados na EEPROM");
@@ -46,7 +48,7 @@ void setupDataSystem(networkBluetooth *ble, networkWiFi *wifi, networkFirebase *
       resetModule();
     }
     Serial.println("Conectado na rede!");
-    vTaskDelay(1000);
+    vTaskDelay(500);
   }
   else
   {
@@ -71,6 +73,11 @@ void setupDataSystem(networkBluetooth *ble, networkWiFi *wifi, networkFirebase *
     vTaskDelay(1000);
     resetModule();
   }
-  bleDisable();
 }
 
+void statusRefresh(networkBluetooth *ble, networkWiFi *wifi, networkFirebase *fb)
+{
+  wifi->SIGNAL = WiFi.RSSI();
+  fb->STATUS = Firebase.authenticated();
+  ble->status = esp_bt_controller_get_status();
+}

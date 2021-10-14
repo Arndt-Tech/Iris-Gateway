@@ -16,6 +16,8 @@
 #define PRIORITY(a) (UBaseType_t)(a)
 
 // Struct's externas
+extern networkBluetooth BLE;
+extern networkWiFi net;
 extern networkFirebase server;
 extern networkLora gateway;
 
@@ -27,7 +29,5 @@ void taskReset(void *pvParameters);
 void taskLoRa(void *pvParameters);
 void taskLoRaTimeout(void *pvParameters);
 void taskOled(void *pvParameters);
-void taskSeekStation(void *pvParameters);
-void taskStatusStation(void *pvParameters);
 
 #endif

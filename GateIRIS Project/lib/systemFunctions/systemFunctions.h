@@ -21,5 +21,6 @@
 // Funções
 void configBegin(networkBluetooth *ble, networkWiFi *wifi, networkFirebase *fb, networkLora *gtw);
 void setupDataSystem(networkBluetooth *ble, networkWiFi *wifi, networkFirebase *fb, networkLora *gtw);
+void statusRefresh(networkBluetooth *ble, networkWiFi *wifi, networkFirebase *fb);
 
 #endif

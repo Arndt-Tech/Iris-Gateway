@@ -9,7 +9,7 @@ void resetClear()
   {
     vTaskDelay(1000);
     counter++;
-    if (counter == resetTime(3))
+    if (counter >= resetTime(3))
     {
       clearEEPROM(0, EEPROM_SIZE);
       resetModule();

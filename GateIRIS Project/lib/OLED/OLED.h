@@ -11,14 +11,14 @@
 #include "images.h"
 #include "icons.h"
 #include "ChipID.h"
+#include "Bluetooth.h"
+#include "_WiFi.h"
+#include "_Firebase.h"
 #include "_LoRa.h"
-
-// Struct's externas
-extern networkLora gateway;
 
 // Funções
 void setupOLED();
-void dataBar(String icon, uint8_t stations, bool commit, bool clear);
+void dataBar(networkBluetooth *ble, networkWiFi *wifi, networkFirebase *fb, networkLora *gtw, bool commit, bool clear);
 void runnigSystem(networkLora *gtw, bool commit, bool clear);
 
 #endif
