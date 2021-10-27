@@ -7,7 +7,7 @@ void configBegin(networkBluetooth *ble, networkWiFi *wifi, networkFirebase *fb, 
   pinMode(resetEEPROM, INPUT);
   Serial.begin(115200);
   EEPROM.begin(EEPROM_SIZE);
-  xTaskCreatePinnedToCore(taskReset, "taskReset", STACK(2048), NULL, PRIORITY(4), NULL, CORE(1));
+  //xTaskCreatePinnedToCore(taskReset, "taskReset", STACK(2048), NULL, PRIORITY(4), NULL, CORE(1));
   setupOLED();
   setupDataSystem(ble, wifi, fb, gtw);
   setupFirebase(fb);

@@ -4,11 +4,11 @@
 void setupFirebase(networkFirebase *fb)
 {
   Serial.println("Inicializando Firebase");
-  fb->config.database_url = FIREBASE_HOST;
-  fb->config.api_key = FIREBASE_API;
-  fb->auth.user.email = "danielarndt959@gmail.com";
-  fb->auth.user.password = "tst123";
-  Firebase.begin(&fb->config, &fb->auth);
+  fb->CONFIG.database_url = FIREBASE_HOST;
+  fb->CONFIG.api_key = FIREBASE_API;
+  fb->AUTH.user.email = "danielarndt959@gmail.com";
+  fb->AUTH.user.password = "tst123";
+  Firebase.begin(&fb->CONFIG, &fb->AUTH);
   Firebase.reconnectWiFi(true);
   Serial.println("Gerando token");
   while (!Firebase.ready())
@@ -20,14 +20,15 @@ void setupFirebase(networkFirebase *fb)
   tokenType(Firebase.authTokenInfo());
   if (Firebase.ready())
     Serial.println("Token: \n" + String(Firebase.getToken()) + "\n");
-  
   readStation(fb);
 }
 
-bool readStation(networkFirebase *fb)
+uint8_t readStation(networkFirebase *fb)
 {
-  if (Firebase.ready())
+  static uint8_t init = false;
+  if (Firebase.ready() || !init)
   {
+    init = true;
     Firebase.RTDB.setQueryIndex(&fb->FIREBASE_IDS, CENTER_ID_RTDB, "", "");
     if (!Firebase.RTDB.getJSON(&fb->FIREBASE_IDS, CENTER_ID_RTDB))
     {
@@ -47,7 +48,6 @@ bool readStation(networkFirebase *fb)
         if (st < MAX_STATIONS)
         {
           *fb->STATION_ID[st] = atol(value.value.c_str());
-          Firebase.RTDB.getBool(&fb->FIREBASE_DATA, CENTER_ISON_RTDB, &fb->STATION_ID[st][ISON]);
           st += 1;
         }
         else
@@ -70,7 +70,7 @@ bool readStation(networkFirebase *fb)
 
 void setStatus(networkFirebase *fb)
 {
-  if (Firebase.ready())
+  if (Firebase.ready() && fb->TOTAL_STATIONS > 0)
   {
     if (fb->TIMEOUT)
     {
@@ -79,7 +79,7 @@ void setStatus(networkFirebase *fb)
         if (!fb->STATION_ID[i][ISCONNECTED])
           Firebase.RTDB.setBool(&fb->FIREBASE_DATA, CENTER_ISCONN_RTDB, false);
     }
-    else 
+    else
       for (uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
         if (fb->STATION_ID[i][ISCONNECTED])
           Firebase.RTDB.setBool(&fb->FIREBASE_DATA, CENTER_ISCONN_RTDB, true);
@@ -90,34 +90,61 @@ void firestoreWrite(networkFirebase *fb)
 {
   if (Firebase.ready() && fb->TOTAL_STATIONS > 0)
   {
-    static unsigned long tFSDB;
-    static uint8_t stationCursor = 0;
-    if ((xTaskGetTickCount() - tFSDB) > TIME(5))
+    static unsigned long tFSDB = 0;
+    if ((xTaskGetTickCount() - tFSDB) > TIME(1))
     {
       tFSDB = xTaskGetTickCount();
-      uint16_t __temp = fb->STATION_ID[stationCursor][FB_TEMPERATURE];
-      double __latitude = fb->STATION_ID[stationCursor][FB_LATITUDE];
-      double __longitude = fb->STATION_ID[stationCursor][FB_LONGITUDE];
-      FirebaseJson content;
-      String documentPath = CENTER_COLLECTION;
-      std::vector<struct fb_esp_firestore_document_write_t> writes;
-      struct fb_esp_firestore_document_write_t update_write;
-      update_write.type = fb_esp_firestore_document_write_type_update;
-      content.set("fields/temperature/doubleValue", (float)__temp / 10);
-      content.set("fields/humidity/integerValue", fb->STATION_ID[stationCursor][FB_HUMIDITY]);
-      content.set("fields/latLong/geoPointValue/latitude", __latitude / -1000000);
-      content.set("fields/latLong/geoPointValue/longitude", __longitude / -1000000);
-      update_write.update_document_content = content.raw();
-      update_write.update_document_path = documentPath.c_str();
-      update_write.update_masks = "temperature,humidity,latLong";
-      writes.push_back(update_write);
-      if (Firebase.Firestore.commitDocument(&fb->FIREBASE_DATA, PROJECT_ID, "", writes, ""))
-        Serial.printf("ok\n%s\n\n", fb->FIREBASE_DATA.payload().c_str());
+      for (uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
+      {
+        if (fb->STATION_ID[i][ISCONNECTED])
+        {
+          float __temp = fb->STATION_ID[i][FB_TEMPERATURE];
+          double __latitude = fb->STATION_ID[i][FB_LATITUDE];
+          double __longitude = fb->STATION_ID[i][FB_LONGITUDE];
+          FirebaseJson content;
+          String documentPath = CENTER_COLLECTION;
+          std::vector<struct fb_esp_firestore_document_write_t> writes;
+          struct fb_esp_firestore_document_write_t update_write;
+          update_write.type = fb_esp_firestore_document_write_type_update;
+          content.set("fields/temperature/doubleValue", __temp / 10);
+          content.set("fields/humidity/integerValue", fb->STATION_ID[i][FB_HUMIDITY]);
+          content.set("fields/latLong/geoPointValue/latitude", __latitude / -1000000);
+          content.set("fields/latLong/geoPointValue/longitude", __longitude / -1000000);
+          update_write.update_document_content = content.raw();
+          update_write.update_document_path = documentPath.c_str();
+          update_write.update_masks = "temperature,humidity,latLong";
+          writes.push_back(update_write);
+          if (Firebase.Firestore.commitDocument(&fb->FIREBASE_DATA, PROJECT_ID, "", writes, ""))
+            Serial.printf("ok\n%s\n\n", fb->FIREBASE_DATA.payload().c_str());
+          else
+            Serial.println(fb->FIREBASE_DATA.errorReason());
+        }
+      }
+    }
+  }
+}
+
+void readStatus(networkFirebase *fb)
+{
+  static uint8_t stationCursor = 0;
+  if (Firebase.ready() && fb->TOTAL_STATIONS > 0)
+  {
+    Firebase.RTDB.getBool(&fb->FIREBASE_DATA, CENTER_REFRESH_STATIONS_RTDB, &fb->REFRESH_STATIONS);
+    Firebase.RTDB.getBool(&fb->FIREBASE_DATA, CENTER_ISON_RTDB, &fb->STATION_ID[stationCursor][ISON]);
+    stationCursor += 1;
+    if (stationCursor >= fb->TOTAL_STATIONS)
+      stationCursor = 0;
+    if (fb->REFRESH_STATIONS)
+    {
+      Serial.println("Refreshing");
+      if (readStation(fb))
+      {
+        Firebase.RTDB.setBool(&fb->FIREBASE_DATA, CENTER_REFRESH_STATIONS_RTDB, false);
+        fb->REFRESH_STATIONS = 0;
+        Serial.println("Refreshed");
+      }
       else
-        Serial.println(fb->FIREBASE_DATA.errorReason());
-      stationCursor += 1;
-      if (stationCursor >= fb->TOTAL_STATIONS)
-        stationCursor = 0;
+        Serial.println("Not refreshed");
     }
   }
 }
@@ -187,55 +214,26 @@ void tokenType(token_info_t token)
 }
 
 /*
-// Teste commit documment
-void teste(networkFirebase *fb)
+// Leitura firestore
+void firestoreGet(networkFirebase *fb)
 {
-  static unsigned long dataMillis;
-  int count = 0;
-  if (Firebase.ready() && (millis() - dataMillis > 60000 || dataMillis == 0))
+  static uint8_t stationCursor = 0;
+  if (Firebase.ready() && fb->TOTAL_STATIONS > 0)
   {
-    //The dyamic array of write object fb_esp_firestore_document_write_t.
-    std::vector<struct fb_esp_firestore_document_write_t> writes;
-    //A write object that will be written to the document.
-    struct fb_esp_firestore_document_write_t update_write;
-    //Set the write object write operation type.
-    //fb_esp_firestore_document_write_type_update,
-    //fb_esp_firestore_document_write_type_delete,
-    //fb_esp_firestore_document_write_type_transform
-    update_write.type = fb_esp_firestore_document_write_type_update;
-    //Set the document content to write (transform)
-    FirebaseJson content;
-    String documentPath = "/Users/Lco9IpTQPTZhwnCjz4xmFBwwgUt1/Gateway/6038996/Station/6038296/data/";
-    content.set("fields/temperature/doubleValue", 27.3);
-
-    //Set the update document content
-    update_write.update_document_content = content.raw();
-    //Set the update document path
-    update_write.update_document_path = documentPath.c_str();
-    //Set the document mask field paths that will be updated
-    //Use comma to separate between the field paths
-    update_write.update_masks = "temperature";
-    writes.push_back(update_write);
-    if (Firebase.Firestore.commitDocument(&fb->FIREBASE_DATA, PROJECT_ID, "", writes, ""))
+    String documentPath = CENTER_COLLECTION_CMD;
+    String mask = "isOn";
+    Serial.print("Get a document... ");
+    if (Firebase.Firestore.getDocument(&fb->FIREBASE_DATA, PROJECT_ID, "", documentPath.c_str(), mask.c_str()))
       Serial.printf("ok\n%s\n\n", fb->FIREBASE_DATA.payload().c_str());
     else
       Serial.println(fb->FIREBASE_DATA.errorReason());
+    stationCursor += 1;
+    if (stationCursor >= fb->TOTAL_STATIONS)
+      stationCursor = 0;
   }
 }
 
-//Teste create
-dataMillis = millis();
-
-    FirebaseJson content;
-
-    //We will create the nested document in the parent path "a0/b0/c0
-    //a0 is the collection id, b0 is the document id in collection a0 and c0 is the collection id in the document b0.
-    //and d? is the document id in the document collection id c0 which we will create.
-    String documentPath = "a0/b0/c0/d" + String(count);
-
-    //If the document path contains space e.g. "a b c/d e f"
-    //It should encode the space as %20 then the path will be "a%20b%20c/d%20e%20f"
-
+// Dados firestore
     //double
     content.set("fields/myDouble/doubleValue", 123.45678);
 
@@ -274,12 +272,4 @@ dataMillis = millis();
     //lat long
     content.set("fields/myLatLng/geoPointValue/latitude", 1.486284);
     content.set("fields/myLatLng/geoPointValue/longitude", 23.678198);
-
-    count++;
-
-    Serial.print("Create a document... ");
-
-    if (Firebase.Firestore.createDocument(&fb->FIREBASE_DATA, PROJECT_ID, "" , documentPath.c_str(), content.raw()))
-      Serial.printf("ok\n%s\n\n", fb->FIREBASE_DATA.payload().c_str());
-    else Serial.println(fb->FIREBASE_DATA.errorReason());
 */

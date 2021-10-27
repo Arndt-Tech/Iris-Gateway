@@ -14,7 +14,7 @@
 #define DELETE 2
 
 // LoRa Config.
-#define INTERVAL 2000 // 2000 + 205ms para compensar o delay de processamento do Gateway
+#define INTERVAL 2000
 #define BAND 433E6    // Frequencia 433MHz
 
 // Definições

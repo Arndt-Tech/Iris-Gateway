@@ -11,8 +11,9 @@ void setup() { configBegin(&BLE, &net, &server, &gateway); }
 void loop()
 {
   statusRefresh(&BLE, &net, &server);
-  readStation(&server);
+  readStatus(&server);
   setStatus(&server);
   firestoreWrite(&server);
-  //Serial.println("Heap: " + String(xPortGetFreeHeapSize()));
+  resetClear();
+  Serial.println(xPortGetFreeHeapSize());
 } //timerWrite(WDT, 0);

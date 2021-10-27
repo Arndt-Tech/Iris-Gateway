@@ -30,7 +30,6 @@ bool connectWifi(networkWiFi *wifi)
   wifi->GATEWAY_IP = WiFi.gatewayIP();
   wifi->DNS_IP = WiFi.dnsIP();
 
-
   Serial.println();
   Serial.print("Conectado na rede: ");
   Serial.println(wifi->SSID);

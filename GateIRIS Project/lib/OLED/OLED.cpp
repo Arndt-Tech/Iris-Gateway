@@ -59,8 +59,8 @@ void runnigSystem(networkLora *gtw, bool commit, bool clear)
     display.clear();
   display.setTextAlignment(TEXT_ALIGN_CENTER);
   display.setFont(Dialog_plain_12);
-  display.drawString(0, 25, "Gateway: ");
-  display.drawString(0, 45, "Local: " + String(gtw->sendPacket.localAddr));
+  display.drawString(0, 25, "    Heap: " + String(xPortGetFreeHeapSize()));
+  //display.drawString(0, 45, "Local: " + String(gtw->sendPacket.localAddr));
   if (commit)
     display.display();
 }
