@@ -36,10 +36,8 @@ void send_LoRa_Message(networkLora *gtw, networkFirebase *fb)
 {
   gtw->sendPacket.packetSize = sizeof(*fb->STATION_ID[gtw->stationCursor]) +
                                sizeof(gtw->sendPacket) - 2;
-  if (!fb->STATION_ID[gtw->stationCursor][ISON])
-    gtw->sendPacket.isOn = 0;
-  else if (fb->STATION_ID[gtw->stationCursor][ISON])
-    gtw->sendPacket.isOn = 1;
+  gtw->sendPacket.isOn = fb->STATION_ID[gtw->stationCursor][ISON];
+  Serial.println(gtw->sendPacket.isOn);
   LoRa.beginPacket();
   // Destino Addr
   LoRa.write(*fb->STATION_ID[gtw->stationCursor]);
@@ -97,23 +95,19 @@ String receive_LoRa_Message(networkLora *gtw, networkFirebase *fb)
 void org_FB_data(networkLora *gtw, networkFirebase *fb)
 {
   uint16_t _aux_temp = 0;
-  //int8_t __packet_signal = LoRa.packetRssi(), __aux_packet_signal = 0;
+  int8_t __packet_signal = LoRa.packetRssi(), __aux_packet_signal = 0;
   _aux_temp |= gtw->receivedPacket.aux_temp[0];
   _aux_temp |= gtw->receivedPacket.aux_temp[1] << 8;
-
-  /*
   if (__packet_signal >= -35)
     __aux_packet_signal = 3;
   else if (__packet_signal < -35 && __packet_signal >= -60)
     __aux_packet_signal = 2;
   else if (__packet_signal < -60 && __packet_signal >= -121)
     __aux_packet_signal = 1;
-  else if (__packet_signal < -121)
+  else if (__packet_signal < -122 || !fb->STATION_ID[gtw->receivedPacket.iterator][ISCONNECTED])
     __aux_packet_signal = 0;
-  */
-
   fb->STATION_ID[gtw->receivedPacket.iterator][RETURN] = 0;
-  //fb->STATION_ID[gtw->receivedPacket.iterator][STATION_SIGNAL] = __aux_packet_signal;
+  fb->STATION_ID[gtw->receivedPacket.iterator][STATION_SIGNAL] = __aux_packet_signal;
   fb->STATION_ID[gtw->receivedPacket.iterator][FB_HUMIDITY] = gtw->receivedPacket.aux_hmdt;
   fb->STATION_ID[gtw->receivedPacket.iterator][FB_TEMPERATURE] = _aux_temp;
   fb->STATION_ID[gtw->receivedPacket.iterator][FB_LATITUDE] = asm_addr(gtw->receivedPacket.latitude);

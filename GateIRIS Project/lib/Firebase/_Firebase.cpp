@@ -77,7 +77,11 @@ void setStatus(networkFirebase *fb)
       fb->TIMEOUT = 0;
       for (uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
         if (!fb->STATION_ID[i][ISCONNECTED])
+        {
           Firebase.RTDB.setBool(&fb->FIREBASE_DATA, CENTER_ISCONN_RTDB, false);
+          Firebase.RTDB.setInt(&fb->FIREBASE_DATA, CENTER_RSSI_RTDB_DISCONN, 0);
+        }
+          
     }
     else
       for (uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
@@ -91,7 +95,7 @@ void firestoreWrite(networkFirebase *fb)
   if (Firebase.ready() && fb->TOTAL_STATIONS > 0)
   {
     static unsigned long tFSDB = 0;
-    if ((xTaskGetTickCount() - tFSDB) > TIME(1))
+    if ((xTaskGetTickCount() - tFSDB) > TIME(5))
     {
       tFSDB = xTaskGetTickCount();
       for (uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
@@ -127,19 +131,25 @@ void firestoreWrite(networkFirebase *fb)
 void readStatus(networkFirebase *fb)
 {
   static uint8_t stationCursor = 0;
-  if (Firebase.ready() && fb->TOTAL_STATIONS > 0)
+  static unsigned long tRssi = 0;
+  if (Firebase.ready() && fb->TOTAL_STATIONS > 0 && fb->STATION_ID[stationCursor][ISCONNECTED])
   {
-    Firebase.RTDB.getBool(&fb->FIREBASE_DATA, CENTER_REFRESH_STATIONS_RTDB, &fb->REFRESH_STATIONS);
-    Firebase.RTDB.getBool(&fb->FIREBASE_DATA, CENTER_ISON_RTDB, &fb->STATION_ID[stationCursor][ISON]);
-    stationCursor += 1;
-    if (stationCursor >= fb->TOTAL_STATIONS)
-      stationCursor = 0;
+    uint8_t __refresh_aux = fb->REFRESH_STATIONS, __ison_aux = fb->STATION_ID[stationCursor][ISON];
+    if ((xTaskGetTickCount() - tRssi) >= TIME(0.5))
+    {
+      Firebase.RTDB.setIntAsync(&fb->FIREBASE_DATA, CENTER_RSSI_RTDB_CONN, fb->STATION_ID[stationCursor][STATION_SIGNAL]);
+      tRssi = xTaskGetTickCount();
+    }
+    if (!Firebase.RTDB.getBool(&fb->FIREBASE_DATA, CENTER_REFRESH_STATIONS_RTDB, &fb->REFRESH_STATIONS))
+      fb->REFRESH_STATIONS = __refresh_aux;
+    if (!Firebase.RTDB.getBool(&fb->FIREBASE_DATA, CENTER_ISON_RTDB, &fb->STATION_ID[stationCursor][ISON]))
+      fb->STATION_ID[stationCursor][ISON] = __ison_aux;
     if (fb->REFRESH_STATIONS)
     {
       Serial.println("Refreshing");
       if (readStation(fb))
       {
-        Firebase.RTDB.setBool(&fb->FIREBASE_DATA, CENTER_REFRESH_STATIONS_RTDB, false);
+        Firebase.RTDB.setBoolAsync(&fb->FIREBASE_DATA, CENTER_REFRESH_STATIONS_RTDB, false);
         fb->REFRESH_STATIONS = 0;
         Serial.println("Refreshed");
       }
@@ -147,6 +157,9 @@ void readStatus(networkFirebase *fb)
         Serial.println("Not refreshed");
     }
   }
+  stationCursor += 1;
+  if (stationCursor >= fb->TOTAL_STATIONS)
+    stationCursor = 0;
 }
 
 void tokenStatus(token_info_t token)

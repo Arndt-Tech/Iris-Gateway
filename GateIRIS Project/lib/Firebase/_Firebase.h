@@ -16,7 +16,8 @@
 #define CENTER_ID_RTDB "/Users/" + String(fb->USER_ID) + "/Gateway/" + String(fb->GATEWAY_ID) + "/Station/"
 #define CENTER_ISON_RTDB "/Users/" + String(fb->USER_ID) + "/Gateway/" + String(fb->GATEWAY_ID) + "/Station/" + String(*fb->STATION_ID[stationCursor]) + "/isOn/"
 #define CENTER_ISCONN_RTDB "/Users/" + String(fb->USER_ID) + "/Gateway/" + String(fb->GATEWAY_ID) + "/Station/" + String(*fb->STATION_ID[i]) + "/isConnected/"
-#define CENTER_RSSI_RTDB "/Users/" + String(fb->USER_ID) + "/Gateway/" + String(fb->GATEWAY_ID) + "/Station/" + String(*fb->STATION_ID[stationCursor]) + "/rssi/"
+#define CENTER_RSSI_RTDB_CONN "/Users/" + String(fb->USER_ID) + "/Gateway/" + String(fb->GATEWAY_ID) + "/Station/" + String(*fb->STATION_ID[stationCursor]) + "/rssi/"
+#define CENTER_RSSI_RTDB_DISCONN "/Users/" + String(fb->USER_ID) + "/Gateway/" + String(fb->GATEWAY_ID) + "/Station/" + String(*fb->STATION_ID[i]) + "/rssi/"
 // Json - Firestore
 #define CENTER_COLLECTION "/Users/" + String(fb->USER_ID) + "/Gateway/" + String(fb->GATEWAY_ID) + "/Station/" + String(*fb->STATION_ID[i])
 // Inicializações

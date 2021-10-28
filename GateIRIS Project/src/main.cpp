@@ -14,6 +14,5 @@ void loop()
   readStatus(&server);
   setStatus(&server);
   firestoreWrite(&server);
-  resetClear();
   Serial.println(xPortGetFreeHeapSize());
 } //timerWrite(WDT, 0);
