@@ -53,6 +53,7 @@
   uint8_t TOTAL_STATIONS;
   // Operacional
   uint8_t REFRESH_STATIONS;
+  uint8_t SYNC_REFRESH;
   uint8_t STATUS;
   uint8_t TIMEOUT;
 } networkFirebase;

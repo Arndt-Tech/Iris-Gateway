@@ -81,12 +81,17 @@ void setStatus(networkFirebase *fb)
           Firebase.RTDB.setBool(&fb->FIREBASE_DATA, CENTER_ISCONN_RTDB, false);
           Firebase.RTDB.setInt(&fb->FIREBASE_DATA, CENTER_RSSI_RTDB_DISCONN, 0);
         }
-          
     }
     else
-      for (uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
-        if (fb->STATION_ID[i][ISCONNECTED])
-          Firebase.RTDB.setBool(&fb->FIREBASE_DATA, CENTER_ISCONN_RTDB, true);
+      if (!fb->REFRESH_STATIONS)
+        for (uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
+        {
+          if (fb->STATION_ID[i][ISCONNECTED])
+          {
+            Firebase.RTDB.setBool(&fb->FIREBASE_DATA, CENTER_ISCONN_RTDB, true);
+            Firebase.RTDB.setInt(&fb->FIREBASE_DATA, CENTER_RSSI_RTDB_DISCONN, fb->STATION_ID[i][STATION_SIGNAL]);
+          }
+        }
   }
 }
 
@@ -112,8 +117,10 @@ void firestoreWrite(networkFirebase *fb)
           update_write.type = fb_esp_firestore_document_write_type_update;
           content.set("fields/temperature/doubleValue", __temp / 10);
           content.set("fields/humidity/integerValue", fb->STATION_ID[i][FB_HUMIDITY]);
-          content.set("fields/latLong/geoPointValue/latitude", __latitude / -1000000);
-          content.set("fields/latLong/geoPointValue/longitude", __longitude / -1000000);
+          if (__latitude != 0.000000)
+            content.set("fields/latLong/geoPointValue/latitude", __latitude / -1000000);
+          if (__longitude != 0.000000)
+            content.set("fields/latLong/geoPointValue/longitude", __longitude / -1000000);
           update_write.update_document_content = content.raw();
           update_write.update_document_path = documentPath.c_str();
           update_write.update_masks = "temperature,humidity,latLong";
@@ -131,25 +138,23 @@ void firestoreWrite(networkFirebase *fb)
 void readStatus(networkFirebase *fb)
 {
   static uint8_t stationCursor = 0;
-  static unsigned long tRssi = 0;
   if (Firebase.ready() && fb->TOTAL_STATIONS > 0 && fb->STATION_ID[stationCursor][ISCONNECTED])
   {
-    uint8_t __refresh_aux = fb->REFRESH_STATIONS, __ison_aux = fb->STATION_ID[stationCursor][ISON];
-    if ((xTaskGetTickCount() - tRssi) >= TIME(0.5))
-    {
-      Firebase.RTDB.setIntAsync(&fb->FIREBASE_DATA, CENTER_RSSI_RTDB_CONN, fb->STATION_ID[stationCursor][STATION_SIGNAL]);
-      tRssi = xTaskGetTickCount();
-    }
-    if (!Firebase.RTDB.getBool(&fb->FIREBASE_DATA, CENTER_REFRESH_STATIONS_RTDB, &fb->REFRESH_STATIONS))
-      fb->REFRESH_STATIONS = __refresh_aux;
+    uint8_t __ison_aux = fb->STATION_ID[stationCursor][ISON];
     if (!Firebase.RTDB.getBool(&fb->FIREBASE_DATA, CENTER_ISON_RTDB, &fb->STATION_ID[stationCursor][ISON]))
       fb->STATION_ID[stationCursor][ISON] = __ison_aux;
+  }
+  if (Firebase.ready())
+  {
+    uint8_t __refresh_aux = fb->REFRESH_STATIONS;
+    if (!Firebase.RTDB.getBool(&fb->FIREBASE_DATA, CENTER_REFRESH_STATIONS_RTDB, &fb->REFRESH_STATIONS))
+      fb->REFRESH_STATIONS = __refresh_aux;
     if (fb->REFRESH_STATIONS)
     {
       Serial.println("Refreshing");
       if (readStation(fb))
       {
-        Firebase.RTDB.setBoolAsync(&fb->FIREBASE_DATA, CENTER_REFRESH_STATIONS_RTDB, false);
+        Firebase.RTDB.setBool(&fb->FIREBASE_DATA, CENTER_REFRESH_STATIONS_RTDB, false);
         fb->REFRESH_STATIONS = 0;
         Serial.println("Refreshed");
       }

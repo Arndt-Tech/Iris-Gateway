@@ -94,7 +94,7 @@ void waitingBT(networkBluetooth *ble) // Aguarda bluetooth conectar
 void waitingSYNC(networkBluetooth *ble) // Aguarda sincronização da comunicação
 {
   ble->repeatDataFilter = 0;  // Desativa filtro contra repetição de dados
-  Serial.println("Aguardando sincronização ");
+  Serial.println("Aguardando sincronização");
   while (getData(ble) != SYNC_FLAG)
   {
     Serial.print(".");

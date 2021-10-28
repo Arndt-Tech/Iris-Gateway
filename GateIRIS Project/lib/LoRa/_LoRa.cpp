@@ -99,10 +99,12 @@ void org_FB_data(networkLora *gtw, networkFirebase *fb)
   _aux_temp |= gtw->receivedPacket.aux_temp[0];
   _aux_temp |= gtw->receivedPacket.aux_temp[1] << 8;
   if (__packet_signal >= -35)
+    __aux_packet_signal = 4;
+  else if (__packet_signal < -35 && __packet_signal >= -50)
     __aux_packet_signal = 3;
-  else if (__packet_signal < -35 && __packet_signal >= -60)
+  else if (__packet_signal < -50 && __packet_signal >= -80)
     __aux_packet_signal = 2;
-  else if (__packet_signal < -60 && __packet_signal >= -121)
+  else if (__packet_signal < -80 && __packet_signal >= -121)
     __aux_packet_signal = 1;
   else if (__packet_signal < -122 || !fb->STATION_ID[gtw->receivedPacket.iterator][ISCONNECTED])
     __aux_packet_signal = 0;
@@ -110,8 +112,10 @@ void org_FB_data(networkLora *gtw, networkFirebase *fb)
   fb->STATION_ID[gtw->receivedPacket.iterator][STATION_SIGNAL] = __aux_packet_signal;
   fb->STATION_ID[gtw->receivedPacket.iterator][FB_HUMIDITY] = gtw->receivedPacket.aux_hmdt;
   fb->STATION_ID[gtw->receivedPacket.iterator][FB_TEMPERATURE] = _aux_temp;
-  fb->STATION_ID[gtw->receivedPacket.iterator][FB_LATITUDE] = asm_addr(gtw->receivedPacket.latitude);
-  fb->STATION_ID[gtw->receivedPacket.iterator][FB_LONGITUDE] = asm_addr(gtw->receivedPacket.longitude);
+  if (asm_addr(gtw->receivedPacket.latitude) != 0.000000)
+    fb->STATION_ID[gtw->receivedPacket.iterator][FB_LATITUDE] = asm_addr(gtw->receivedPacket.latitude);
+  if (asm_addr(gtw->receivedPacket.longitude) != 0.000000)
+    fb->STATION_ID[gtw->receivedPacket.iterator][FB_LONGITUDE] = asm_addr(gtw->receivedPacket.longitude);
 }
 
 void verify_LoRa_Timeout(networkFirebase *fb)
