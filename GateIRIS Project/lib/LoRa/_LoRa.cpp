@@ -1,19 +1,8 @@
 //
 #include "_Lora.h"
 
-uint32_t aux::LoraPackage::snd::m_dest_addr;
-uint32_t aux::LoraPackage::snd::m_local_addr;
-uint8_t aux::LoraPackage::snd::m_is_on;
-uint8_t aux::LoraPackage::snd::m_size;
-uint32_t aux::LoraPackage::rcv::m_receiver_addr;
-uint32_t aux::LoraPackage::rcv::m_sender_addr;
-int32_t aux::LoraPackage::rcv::m_latitude;
-int32_t aux::LoraPackage::rcv::m_longitude;
-uint8_t aux::LoraPackage::rcv::m_humidity;
-uint8_t aux::LoraPackage::rcv::m_temperature;
-uint8_t aux::LoraPackage::rcv::m_size;
-uint8_t aux::LoraPackage::rcv::m_iterator;
-int8_t aux::LoraPackage::rcv::m_signal;
+aux::LoraPackage::_snd aux::LoraPackage::snd;
+aux::LoraPackage::_rcv aux::LoraPackage::rcv;
 
 aux::LoraPackage com::Lora::package;
 uint8_t com::Lora::m_selectedStation = 0;
@@ -48,7 +37,9 @@ void com::Lora::opr::duplex()
 
 void com::Lora::opr::sendPackage()
 {
-  package.snd.m_size = (uint8_t)(sizeof(package.snd) - SIZE_CORRECTION(2));
+  package.snd.m_size = sizeof(package.snd) - SIZE_CORRECTION(2);
+  package.snd.m_dest_addr = com::FirebaseServer::get::station(m_selectedStation);
+  package.snd.m_is_on = com::FirebaseServer::get::station(m_selectedStation, ISON);
   LoRa.beginPacket();
   // Destino Addr
   LoRa.write(com::FirebaseServer::get::station(m_selectedStation));
@@ -106,6 +97,7 @@ void com::Lora::opr::readPackage()
     return;
 
   package.rcv.m_sender_addr = spc::SpecialFunctions::asmAddr(__sender_addr);
+  package.rcv.m_receiver_addr = spc::SpecialFunctions::asmAddr(__receive_addr);
   package.rcv.m_humidity = __humidity;
   package.rcv.m_temperature |= __temperature[0];
   package.rcv.m_temperature |= __temperature[1] << 8;
@@ -114,6 +106,8 @@ void com::Lora::opr::readPackage()
   package.rcv.m_size = __size_received;
   package.rcv.m_signal = LoRa.packetRssi();
   package.rcv.m_iterator = __iterator;
+  
+  organizeData();
 
   return;
 }
@@ -151,7 +145,7 @@ void com::Lora::checkTimeout()
       rstTmt = 0;
       com::FirebaseServer::set::station(i, ISCONNECTED, 0);
     }
-    else if (!com::FirebaseServer::get::station(i, RETURN))
+    else
     {
       rstTmt = 1;
       com::FirebaseServer::set::station(i, ISCONNECTED, 1);
@@ -170,34 +164,34 @@ void com::Lora::checkTimeout()
   }
 }
 
-uint32_t aux::LoraPackage::send::get::destinationAddress() { return snd::m_dest_addr; }
+uint32_t aux::LoraPackage::send::get::destinationAddress() const { return snd.m_dest_addr; }
 
-uint32_t aux::LoraPackage::send::get::localAddress() { return snd::m_local_addr; }
+uint32_t aux::LoraPackage::send::get::localAddress() const { return snd.m_local_addr; }
 
-uint8_t aux::LoraPackage::send::get::valveStatus() { return snd::m_is_on; }
+uint8_t aux::LoraPackage::send::get::valveStatus() const { return snd.m_is_on; }
 
-uint8_t aux::LoraPackage::send::get::size() { return snd::m_size; }
+uint8_t aux::LoraPackage::send::get::size() const { return snd.m_size; }
 
-void aux::LoraPackage::send::set::destinationAddress(uint32_t value) { snd::m_dest_addr = value; }
+void aux::LoraPackage::send::set::destinationAddress(uint32_t value) { snd.m_dest_addr = value; }
 
-void aux::LoraPackage::send::set::localAddress(uint32_t value) { snd::m_local_addr = value; }
+void aux::LoraPackage::send::set::localAddress(uint32_t value) { snd.m_local_addr = value; }
 
-void aux::LoraPackage::send::set::valveStatus(uint8_t status) { snd::m_is_on = status; }
+void aux::LoraPackage::send::set::valveStatus(uint8_t status) { snd.m_is_on = status; }
 
-uint32_t aux::LoraPackage::receive::get::receiveAddress() { return rcv::m_receiver_addr; }
+uint32_t aux::LoraPackage::receive::get::receiveAddress() const { return rcv.m_receiver_addr; }
 
-uint32_t aux::LoraPackage::receive::get::senderAddress() { return rcv::m_sender_addr; }
+uint32_t aux::LoraPackage::receive::get::senderAddress() const { return rcv.m_sender_addr; }
 
-int32_t aux::LoraPackage::receive::get::latitude() { return rcv::m_latitude; }
+int32_t aux::LoraPackage::receive::get::latitude() const { return rcv.m_latitude; }
 
-int32_t aux::LoraPackage::receive::get::longitude() { return rcv::m_longitude; }
+int32_t aux::LoraPackage::receive::get::longitude() const { return rcv.m_longitude; }
 
-uint8_t aux::LoraPackage::receive::get::temperature() { return rcv::m_temperature; }
+int16_t aux::LoraPackage::receive::get::temperature() const { return rcv.m_temperature; }
 
-uint8_t aux::LoraPackage::receive::get::humidity() { return rcv::m_humidity; }
+uint8_t aux::LoraPackage::receive::get::humidity() const { return rcv.m_humidity; }
 
-uint8_t aux::LoraPackage::receive::get::stationNumber() { return rcv::m_iterator; }
+uint8_t aux::LoraPackage::receive::get::stationNumber() const { return rcv.m_iterator; }
 
-int8_t aux::LoraPackage::receive::get::signal() { return rcv::m_signal; }
+int16_t aux::LoraPackage::receive::get::signal() const { return rcv.m_signal; }
 
-uint8_t aux::LoraPackage::receive::get::size() { return rcv::m_size; }
+uint8_t aux::LoraPackage::receive::get::size() const { return rcv.m_size; }

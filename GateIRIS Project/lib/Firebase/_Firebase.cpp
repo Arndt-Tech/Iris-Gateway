@@ -18,12 +18,12 @@ void com::FirebaseServer::begin()
 {
   m_gateway_id = spc::SpecialFunctions::getChipID();
   m_config.database_url = FIREBASE_HOST;
-  m_config.api_key = FIREBASE_API;
+  m_config.signer.tokens.legacy_token = FIREBASE_AUTH;
   Firebase.begin(&m_config, &m_auth);
   Firebase.reconnectWiFi(true);
-  m_token_info = Firebase.authTokenInfo();
   if (Firebase.ready())
     m_token = String(Firebase.getToken());
+  m_token_info = Firebase.authTokenInfo();
   refreshStations();
 }
 
@@ -80,13 +80,16 @@ void com::FirebaseServer::runConnectionStatusSystem()
     {
       m_timeout = 0;
       for (uint8_t i = 0; i < m_total_stations; i++)
+      {
         if (!m_station[i][ISCONNECTED])
         {
           Firebase.RTDB.setBool(&m_firebase_data, CENTER_ISCONN_RTDB, false);
           Firebase.RTDB.setInt(&m_firebase_data, CENTER_RSSI_RTDB_DISCONN, 0);
         }
+      }
     }
     else if (!m_refresh_stations)
+    {
       for (uint8_t i = 0; i < m_total_stations; i++)
       {
         if (m_station[i][ISCONNECTED])
@@ -95,6 +98,7 @@ void com::FirebaseServer::runConnectionStatusSystem()
           Firebase.RTDB.setInt(&m_firebase_data, CENTER_RSSI_RTDB_DISCONN, m_station[i][STATION_SIGNAL]);
         }
       }
+    }
   }
 }
 
@@ -112,16 +116,11 @@ void com::FirebaseServer::opr::updateRequest()
       if (refreshStations())
       {
         Firebase.RTDB.setBool(&m_firebase_data, CENTER_REFRESH_STATIONS_RTDB, false);
-        m_refresh_stations = 0;
       }
     }
   }
-  if (Firebase.ready() && m_total_stations > 0 && m_station[stationCursor][ISCONNECTED])
-  {
-    uint8_t __ison_aux = (uint8_t)m_station[stationCursor][ISON];
-    if (!Firebase.RTDB.getBool(&m_firebase_data, CENTER_ISON_RTDB, &m_station[stationCursor][ISON]))
-      m_station[stationCursor][ISON] = __ison_aux;
-  }
+  runConnectionStatusSystem();
+  m_refresh_stations = 0;
   stationCursor += 1;
   if (stationCursor >= m_total_stations)
     stationCursor = 0;
@@ -130,14 +129,33 @@ void com::FirebaseServer::opr::updateRequest()
 void com::FirebaseServer::opr::dataUpload()
 {
   static unsigned long tUpload = 0;
-  if (spc::SpecialFunctions::ctrlTickCount(xTaskGetTickCount(), tUpload) > TIME(20000) && Firebase.ready() && m_total_stations > 0)
+  if (spc::SpecialFunctions::ctrlTickCount(xTaskGetTickCount(), tUpload) > TIME(20000))
+  {
+    if (Firebase.ready() && m_total_stations > 0)
+    {
+      for (register uint8_t i = 0; i < m_total_stations; i++)
+      {
+        Firebase.RTDB.setFloat(&m_firebase_data, CENTER_TEMPERATURE_RTDB, (float)m_station[i][FB_TEMPERATURE] / 10);
+        Firebase.RTDB.setInt(&m_firebase_data, CENTER_HUMIDITY_RTDB, m_station[i][FB_HUMIDITY]);
+        Firebase.RTDB.setDouble(&m_firebase_data, CENTER_LATITUDE_RTDB, (double)m_station[i][FB_LATITUDE] / (-1E6));
+        Firebase.RTDB.setDouble(&m_firebase_data, CENTER_LONGITUDE_RTDB, (double)m_station[i][FB_LONGITUDE] / (-1E6));
+      }
+    }
+  }
+}
+
+void com::FirebaseServer::opr::dataDownload()
+{
+  if (Firebase.ready() && m_total_stations > 0)
   {
     for (register uint8_t i = 0; i < m_total_stations; i++)
     {
-      Firebase.RTDB.setFloat(&m_firebase_data, CENTER_TEMPERATURE_RTDB, (float)m_station[i][FB_TEMPERATURE] / 10);
-      Firebase.RTDB.setInt(&m_firebase_data, CENTER_HUMIDITY_RTDB, m_station[i][FB_HUMIDITY]);
-      Firebase.RTDB.setDouble(&m_firebase_data, CENTER_LATITUDE_RTDB, (double)m_station[i][FB_LATITUDE] / (-1E6));
-      Firebase.RTDB.setDouble(&m_firebase_data, CENTER_LONGITUDE_RTDB, (double)m_station[i][FB_LONGITUDE] / (-1E6));
+      uint8_t __ison_aux = 0;
+      uint8_t __ison = (uint8_t)m_station[i][ISON];
+      if (!Firebase.RTDB.getBool(&m_firebase_data, CENTER_ISON_RTDB, &__ison_aux))
+        m_station[i][ISON] = __ison;
+      else
+        m_station[i][ISON] = __ison_aux;
     }
   }
 }

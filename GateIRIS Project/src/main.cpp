@@ -6,6 +6,7 @@ void setup()
 {
 #if _DEBUG_MODE_
   Serial.begin(115200);
+  Serial.write('\n');
   Serial.println("********************************");
   Serial.println("********** DEBUG MODE **********");
   Serial.println("********************************");
@@ -30,6 +31,7 @@ void setup()
 void loop()
 {
   gateway.manage.Firebase().operations.updateRequest();
+  gateway.manage.Firebase().operations.dataDownload();
   gateway.manage.Firebase().operations.dataUpload();
 
 #if _DEBUG_MODE_
@@ -39,9 +41,6 @@ void loop()
   Serial.println("****************************************");
   Serial.println("********** Gateway Data Debug **********");
   Serial.println("****************************************");
-  Serial.write('\n');
-  gateway.manage.LoRa().package.send.get.destinationAddress();
-  Serial.write('\n');
   Serial.println("---------------------------------------------------");
   Serial.println("LoRa unit - shipping package");
   Serial.write('\n');
@@ -59,8 +58,8 @@ void loop()
   Serial.println("Station Number: " + String(gateway.manage.LoRa().package.receive.get.stationNumber()));
   Serial.println("Humidity: " + String(gateway.manage.LoRa().package.receive.get.humidity()));
   Serial.println("Temperature: " + String(gateway.manage.LoRa().package.receive.get.temperature() / 10));
-  Serial.println("Latitude: " + String(gateway.manage.LoRa().package.receive.get.latitude() / (-1E6)));
-  Serial.println("Longitude: " + String(gateway.manage.LoRa().package.receive.get.longitude() / (-1E6)));
+  Serial.println("Latitude: " + String(gateway.manage.LoRa().package.receive.get.latitude() / (-1E6), 6));
+  Serial.println("Longitude: " + String(gateway.manage.LoRa().package.receive.get.longitude() / (-1E6), 6));
   Serial.println("Package size: " + String(gateway.manage.LoRa().package.receive.get.size()) + " Bytes");
   Serial.println("Signal: " + String(gateway.manage.LoRa().package.receive.get.signal()));
   Serial.write('\n');
@@ -70,11 +69,15 @@ void loop()
   Serial.println("SSID: " + String(gateway.manage.Wifi().get.SSID()));
   Serial.println("Signal: " + String(gateway.manage.Wifi().get.signal()));
   Serial.println("Status: " + gateway.Additional().WiFiStatus());
-  Serial.println("Local IP: " + String(gateway.manage.Wifi().get.IP()));
-  Serial.println("Gateway IP: " + String(gateway.manage.Wifi().get.gatewayIP()));
-  Serial.println("DNS IP: " + String(gateway.manage.Wifi().get.dnsIP()));
+  Serial.print("Local IP: ");
+  Serial.println(gateway.manage.Wifi().get.IP());
+  Serial.print("Gateway IP: ");
+  Serial.println(gateway.manage.Wifi().get.gatewayIP());
+  Serial.print("DNS IP: ");
+  Serial.println(gateway.manage.Wifi().get.dnsIP());
   Serial.println("Mac Address: " + String(gateway.manage.Wifi().get.macAddress()));
-  Serial.println("Subnet Mask: " + String(gateway.manage.Wifi().get.subnetMask()));
+  Serial.print("Subnet Mask: ");
+  Serial.println(gateway.manage.Wifi().get.subnetMask());
   Serial.write('\n');
   Serial.println("---------------------------------------------------");
   Serial.println("Firebase unit");
@@ -83,7 +86,6 @@ void loop()
   Serial.println("Gateway ID: " + String(gateway.manage.Firebase().get.gatewayID()));
   Serial.println("Total Stations: " + String(gateway.manage.Firebase().get.totalStations()));
   Serial.println("Firebase status: " + String(gateway.manage.Firebase().get.status()));
-  Serial.print("Token Info: ");
   gateway.Additional().viewTokenInfo(gateway.manage.Firebase().get.tokenInfo());
   Serial.println("Token: ");
   Serial.println(gateway.manage.Firebase().get.token());
@@ -93,6 +95,7 @@ void loop()
   Serial.write('\n');
   Serial.print("Connection Status: ");
   Serial.println(gateway.manage.Bluetooth().getConnectionStatus() == true ? "Connected" : "Disconnected");
+  Serial.println("Heap: " + String(ESP.getFreeHeap()));
   Serial.println("---------------------------------------------------");
   Serial.write('\n');
   vTaskDelay(5000);

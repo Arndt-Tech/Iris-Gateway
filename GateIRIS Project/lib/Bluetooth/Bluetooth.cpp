@@ -160,7 +160,7 @@ void com::BLE::sendRequest()
  * @brief Waiting for app request.
  * 
  */
-    void com::BLE::waitingRequest()
+void com::BLE::waitingRequest()
 {
 #if _DEBUG_MODE_
   Serial.println("Waiting for request.");
@@ -279,6 +279,7 @@ void com::BLE::wifi()
   com::BLE::write(APP_SENDS_PASSWORD);
   com::Wifi::set::password(com::BLE::read());
   m_repeatDataFilter = 1; // Ativa filtro contra repetição de dados
+  com::BLE::write(SUCCESSFULLY_CONNECTED);
 }
 
 void com::BLE::firebaseID()
@@ -309,9 +310,9 @@ void com::BLE::config()
   // Espera para receber o request do clientAPP
   waitingRequest();
 
-  wifi();
-
   firebaseID();
+
+  wifi();
 }
 
 /**
@@ -328,5 +329,7 @@ void com::BLE::disable()
 }
 
 esp_bt_controller_status_t com::BLE::getStatus() { return esp_bt_controller_get_status(); }
+
+uint8_t com::BLE::getConnectionStatus() { return m_connected; }
 
 void com::BLE::setConnectionStatus(uint8_t status) { m_connected = status; }

@@ -76,37 +76,39 @@ namespace aux
     friend class com::Lora;
 
   private:
-    struct snd
+    struct _snd
     {
-      static uint32_t m_dest_addr;
-      static uint32_t m_local_addr;
-      static uint8_t m_is_on;
-      static uint8_t m_size;
-    } snd;
-    struct rcv
+      int32_t m_dest_addr;
+      uint32_t m_local_addr;
+      uint8_t m_is_on;
+      uint8_t m_size;
+    } static snd;
+
+    struct _rcv
     {
-      static uint32_t m_receiver_addr, m_sender_addr;
-      static int32_t m_latitude, m_longitude;
-      static uint8_t m_humidity, m_temperature;
-      static uint8_t m_size, m_iterator;
-      static int8_t m_signal;
-    } rcv;
+      uint32_t m_receiver_addr, m_sender_addr;
+      int32_t m_latitude, m_longitude;
+      uint8_t m_humidity;
+      uint16_t m_temperature;
+      uint8_t m_size, m_iterator;
+      int16_t m_signal;
+    } static rcv;
 
   public:
     struct send
     {
       struct get
       {
-        static uint32_t destinationAddress();
-        static uint32_t localAddress();
-        static uint8_t valveStatus();
-        static uint8_t size();
+        uint32_t destinationAddress() const;
+        uint32_t localAddress() const;
+        uint8_t valveStatus() const;
+        uint8_t size() const;
       } get;
       struct set
       {
-        static void destinationAddress(uint32_t value);
-        static void localAddress(uint32_t value);
-        static void valveStatus(uint8_t status);
+        void destinationAddress(uint32_t value);
+        void localAddress(uint32_t value);
+        void valveStatus(uint8_t status);
       } set;
     } send;
 
@@ -114,15 +116,15 @@ namespace aux
     {
       struct get
       {
-        static uint32_t receiveAddress();
-        static uint32_t senderAddress();
-        static int32_t latitude();
-        static int32_t longitude();
-        static uint8_t temperature();
-        static uint8_t humidity();
-        static uint8_t stationNumber();
-        static int8_t signal();
-        static uint8_t size();
+        uint32_t receiveAddress() const;
+        uint32_t senderAddress() const;
+        int32_t latitude() const;
+        int32_t longitude() const;
+        int16_t temperature() const;
+        uint8_t humidity() const;
+        uint8_t stationNumber() const;
+        int16_t signal() const;
+        uint8_t size() const;
       } get;
     } receive;
   };

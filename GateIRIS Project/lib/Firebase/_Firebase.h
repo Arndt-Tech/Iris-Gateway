@@ -10,11 +10,10 @@
 #define FIREBASE_HOST "iris-24c17-default-rtdb.firebaseio.com"
 #define FIREBASE_AUTH "ZQlCp7oKTm7QYupuhh9b2C8pqajd3CoxGwK9iAbl"
 #define FIREBASE_API "AIzaSyDO-jkFKJze7Fz_z6cxps5kBQ4fMiwJa6s"
-#define PROJECT_ID "iris-24c17"
 
 #define CENTER_REFRESH_STATIONS_RTDB "/Users/" + String(m_user_id) + "/Gateway/" + String(m_gateway_id) + "/refresh/"
 #define CENTER_ID_RTDB "/Users/" + String(m_user_id) + "/Gateway/" + String(m_gateway_id) + "/Station/"
-#define CENTER_ISON_RTDB "/Users/" + String(m_user_id) + "/Gateway/" + String(m_gateway_id) + "/Station/" + String(*m_station[stationCursor]) + "/isOn/"
+#define CENTER_ISON_RTDB "/Users/" + String(m_user_id) + "/Gateway/" + String(m_gateway_id) + "/Station/" + String(*m_station[i]) + "/isOn/"
 #define CENTER_ISCONN_RTDB "/Users/" + String(m_user_id) + "/Gateway/" + String(m_gateway_id) + "/Station/" + String(*m_station[i]) + "/isConnected/"
 #define CENTER_RSSI_RTDB_CONN "/Users/" + String(m_user_id) + "/Gateway/" + String(m_gateway_id) + "/Station/" + String(*m_station[stationCursor]) + "/rssi/"
 #define CENTER_RSSI_RTDB_DISCONN "/Users/" + String(m_user_id) + "/Gateway/" + String(m_gateway_id) + "/Station/" + String(*m_station[i]) + "/rssi/"
@@ -59,7 +58,7 @@ namespace com
     static token_info_t m_token_info;
 
   private:
-    void runConnectionStatusSystem();
+    static void runConnectionStatusSystem();
     static uint8_t refreshStations();
 
   public:
@@ -68,6 +67,7 @@ namespace com
     {
       static void updateRequest();
       static void dataUpload();
+      static void dataDownload();
     } operations;
     struct get
     {

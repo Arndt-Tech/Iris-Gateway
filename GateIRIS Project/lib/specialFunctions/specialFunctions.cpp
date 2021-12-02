@@ -4,7 +4,7 @@
 /**
  * @brief Reset device.
  */
-void spc::SpecialFunctions::resetModule() { esp_restart(); } // Reinicia dispositivo
+void spc::SpecialFunctions::resetModule() { esp_restart(); } 
 
 /**
  * @brief Address assembly.

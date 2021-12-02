@@ -5,31 +5,31 @@ void add::Additional::viewTokenInfo(token_info_t token)
   switch (token.status)
   {
   case token_status_uninitialized:
-    Serial.println("Token nao inicializado.");
+    Serial.println("Token uninitialized.");
     break;
 
   case token_status_on_initialize:
-    Serial.println("Token inicializando.");
+    Serial.println("Token on initialize.");
     break;
 
   case token_status_on_signing:
-    Serial.println("Token em assinatura.");
+    Serial.println("Token on signing.");
     break;
 
   case token_status_on_request:
-    Serial.println("Token em solicitacao.");
+    Serial.println("Token on request.");
     break;
 
   case token_status_on_refresh:
-    Serial.println("Token atualizando.");
+    Serial.println("Token on refresh.");
     break;
 
   case token_status_ready:
-    Serial.println("Token pronto.");
+    Serial.println("Token ready.");
     break;
 
   case token_status_error:
-    Serial.println("Erro ao inicializar token.");
+    Serial.println("Token error.");
     break;
 
   default:
@@ -40,27 +40,27 @@ void add::Additional::viewTokenInfo(token_info_t token)
   switch (token.type)
   {
   case token_type_undefined:
-    Serial.println("Token de tipo indefinido.");
+    Serial.println("Token undefined");
     break;
 
   case token_type_legacy_token:
-    Serial.println("Token de tipo legado.");
+    Serial.println("Legacy token.");
     break;
 
   case token_type_id_token:
-    Serial.println("Token de tipo ID.");
+    Serial.println("ID Token.");
     break;
 
   case token_type_custom_token:
-    Serial.println("Token de tipo customizado.");
+    Serial.println("Custom token.");
     break;
 
   case token_type_oauth2_access_token:
-    Serial.println("Token de tipo OAuth2.0.");
+    Serial.println("OAuth2.0 access token.");
     break;
 
   case token_type_refresh_token:
-    Serial.println("Token de tipo atualizacao.");
+    Serial.println("Refresh token.");
     break;
 
   default:
