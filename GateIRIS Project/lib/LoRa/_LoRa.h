@@ -1,56 +1,160 @@
-#ifndef _LORA_H
-#define _LORA_H
+#pragma once
 
-//InclusÃµes
 #include <Arduino.h>
 #include <FreeRTOS.h>
 #include <SPI.h>
 #include <LoRa.h>
 #include "pinout.h"
+#include "debug.h"
+#include "specialFunctions.h"
 #include "_Firebase.h"
 
-// Definições
+#define INTERVAL 2000
+// LoRa shipping interval
+#define BAND 433E6
+// 433MHz Radio working frequency
+#define SF 12
+//
+#define BW 250E3
+//
+#define CR 4
+//
+#define PL 6
+//
+#define SW 0x16
+//
+/*
+  Config:
+    Band -> 433MHz
+    Spread Factor -> 12
+    Bandwitch -> 250KHz
+    Coding Rate -> 4
+    Payload Lenght -> 10 bytes
+    Preable Lenght -> 6
+    Sync Word -> 0x16
+  |----------------------------------|
+  Data:
+    Equivalent bitrate -> 366 bytes/s
+    Time on air -> 561 ms
+*/
+//
+#define SIZE_CORRECTION(a) (size_t)(a)
+
+//
 #define STD 0
 #define DELETE 2
 
-// LoRa Config.
+//
 #define INTERVAL 2000
-#define BAND 433E6    // Frequencia 433MHz
+#define BAND 433E6
 
-// Definições
+//
 #define loraTmt 10000
 
-// Struct's
-typedef struct _lora
+/**
+ * @brief Communication classes.
+ * 
+ */
+namespace com
 {
-  uint32_t localAddr;
-  uint8_t isOn;
-  uint8_t packetSize;
-} loraSend;
+  class Lora;
+}
 
-typedef struct __lora
+/**
+ * @brief Auxiliary classes.
+ * 
+ */
+namespace aux
 {
-  uint8_t dest_addr[4], sender_addr[4];
-  uint8_t latitude[4], longitude[4];
-  uint8_t fSender, iterator;
-  uint8_t aux_hmdt, aux_temp[2];
-  uint16_t packageLength;
-} loraReceive;
+  class LoraPackage;
+}
 
-typedef struct lora
+namespace aux
 {
-  uint8_t stationCursor;
-  loraSend sendPacket;
-  loraReceive receivedPacket;
-} networkLora;
+  class LoraPackage
+  {
+    friend class com::Lora;
 
-// Funções
-void setupLoRa(networkLora *gtw);
-void runningLoRa(networkLora *gtw, networkFirebase *fb);
-void send_LoRa_Message(networkLora *gtw, networkFirebase *fb);
-String receive_LoRa_Message(networkLora *gtw, networkFirebase *fb);
-void org_FB_data(networkLora *gtw, networkFirebase *fb);
-void verify_LoRa_Timeout(networkFirebase *fb);
-uint32_t asm_addr(uint8_t *addr);
+  private:
+    struct snd
+    {
+      static uint32_t m_dest_addr;
+      static uint32_t m_local_addr;
+      static uint8_t m_is_on;
+      static uint8_t m_size;
+    } snd;
+    struct rcv
+    {
+      static uint32_t m_receiver_addr, m_sender_addr;
+      static int32_t m_latitude, m_longitude;
+      static uint8_t m_humidity, m_temperature;
+      static uint8_t m_size, m_iterator;
+      static int8_t m_signal;
+    } rcv;
 
-#endif
+  public:
+    struct send
+    {
+      struct get
+      {
+        static uint32_t destinationAddress();
+        static uint32_t localAddress();
+        static uint8_t valveStatus();
+        static uint8_t size();
+      } get;
+      struct set
+      {
+        static void destinationAddress(uint32_t value);
+        static void localAddress(uint32_t value);
+        static void valveStatus(uint8_t status);
+      } set;
+    } send;
+
+    struct receive
+    {
+      struct get
+      {
+        static uint32_t receiveAddress();
+        static uint32_t senderAddress();
+        static int32_t latitude();
+        static int32_t longitude();
+        static uint8_t temperature();
+        static uint8_t humidity();
+        static uint8_t stationNumber();
+        static int8_t signal();
+        static uint8_t size();
+      } get;
+    } receive;
+  };
+}
+
+namespace com
+{
+  /**
+   * @brief Communication class via Lora at the IRIS Gateway.
+   * 
+   */
+  class Lora
+  {
+  private:
+    static uint8_t m_selectedStation;
+
+  private:
+    static void organizeData();
+
+  public:
+    static aux::LoraPackage package;
+
+  public:
+    void begin();
+    void checkTimeout();
+
+  public:
+    struct opr
+    {
+      static void readPackage();
+      static void sendPackage();
+      static void duplex();
+    } operation;
+  };
+}

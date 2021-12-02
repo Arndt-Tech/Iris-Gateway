@@ -1,18 +1,15 @@
-#include "systemFunctions.h"
+#include "Gateway.hpp"
 
-networkBluetooth BLE;
-networkWiFi net;
-networkFirebase server;
-networkLora gateway;
-//hw_timer_t *WDT = NULL;
+gtw::Gateway gateway;
 
-void setup() { configBegin(&BLE, &net, &server, &gateway); }
+void setup()
+{
+  gateway.begin();
+  //setupTasks();
+}
 
 void loop()
 {
-  statusRefresh(&BLE, &net, &server);
-  readStatus(&server);
-  setStatus(&server);
-  firestoreWrite(&server);
-  //Serial.println(xPortGetFreeHeapSize());
-} //timerWrite(WDT, 0);
+  gateway.manage.Firebase().operations.updateRequest();
+  gateway.manage.Firebase().operations.dataUpload();
+}

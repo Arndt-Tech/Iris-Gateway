@@ -1,55 +1,41 @@
 // Inclusões
 #include "_WiFi.h"
 
+String com::Wifi::m_ssid;
+String com::Wifi::m_password;
+IPAddress com::Wifi::m_local_ip;
+String com::Wifi::m_mac_addr;
+IPAddress com::Wifi::m_subnet_mask;
+IPAddress com::Wifi::m_gateway_ip;
+IPAddress com::Wifi::m_dns_ip;
+int8_t com::Wifi::m_signal;
+
 // Funções
-bool connectWifi(networkWiFi *wifi)
+bool com::Wifi::connect()
 {
   uint8_t t = 1;
   static unsigned long connectWifi = 0;
-  WiFi.begin(wifi->SSID.c_str(), wifi->PASSWORD.c_str());
-  Serial.print("Conectando em: ");
-  Serial.println(wifi->SSID.c_str());
+  WiFi.begin(m_ssid.c_str(), m_password.c_str());
   while (WiFi.status() != WL_CONNECTED)
   {
     if ((xTaskGetTickCount() - connectWifi) > 5000)
     {
-      WiFi.begin(wifi->SSID.c_str(), wifi->PASSWORD.c_str());
-
-      Serial.println("\nTentando conectar na rede");
-      Serial.println(wifi->SSID);
-      Serial.println("Tentativa: " + String(t));
+      WiFi.begin(m_ssid.c_str(), m_password.c_str());
       t++;
       if (t > 12)
         return 0;
       connectWifi = xTaskGetTickCount();
     }
   }
-  wifi->LOCAL_IP = WiFi.localIP();
-  wifi->MAC_ADDR = WiFi.macAddress();
-  wifi->SUBNET_MASK = WiFi.subnetMask();
-  wifi->GATEWAY_IP = WiFi.gatewayIP();
-  wifi->DNS_IP = WiFi.dnsIP();
-
-  Serial.println();
-  Serial.print("Conectado na rede: ");
-  Serial.println(wifi->SSID);
-
-  Serial.print("IP Address: ");
-  Serial.println(wifi->LOCAL_IP);
-
-  Serial.print("MAC Address: ");
-  Serial.println(wifi->MAC_ADDR);
-
-  Serial.print("Gateway IP: ");
-  Serial.println(wifi->GATEWAY_IP);
-
-  Serial.print("DNS IP: ");
-  Serial.println(wifi->DNS_IP);
-
+  m_local_ip = WiFi.localIP();
+  m_mac_addr = WiFi.macAddress();
+  m_subnet_mask = WiFi.subnetMask();
+  m_gateway_ip = WiFi.gatewayIP();
+  m_dns_ip = WiFi.dnsIP();
   return 1;
 }
 
-void reconnectWiFi(networkWiFi *wifi) // TIMEOUT de 60 segundos
+void com::Wifi::reconnect()
 {
   uint8_t t = 1;
   static unsigned long tReconnectWifi = 0;
@@ -57,50 +43,31 @@ void reconnectWiFi(networkWiFi *wifi) // TIMEOUT de 60 segundos
   {
     if ((xTaskGetTickCount() - tReconnectWifi) > 5000)
     {
-      WiFi.begin(wifi->SSID.c_str(), wifi->PASSWORD.c_str());
-
-      Serial.println("\nReeconectando na rede " + String(wifi->SSID));
-      Serial.print("Tentativa: " + String(t));
+      WiFi.begin(m_ssid.c_str(), m_password.c_str());
       t++;
       if (t > 12)
-        resetModule();
+        spc::SpecialFunctions::resetModule();
       tReconnectWifi = xTaskGetTickCount();
     }
   }
 }
 
-String wifiStatusDebug(wl_status_t wfStatus)
-{
-  switch (wfStatus)
-  {
-  case 0:
-    return ("WL_IDLE_STATUS");
-  case 1:
-    return ("WL_NO_SSID_AVAIL");
-  case 2:
-    return ("WL_SCAN_COMPLETED");
-  case 3:
-    return ("WL_CONNECTED");
-  case 4:
-    return ("WL_CONNECT_FAILED");
-  case 5:
-    return ("WL_CONNECTION_LOST");
-  case 6:
-    return ("WL_DISCONNECTED");
-  case 255:
-    return ("WL_NO_SHIELD");
-  default:
-    return ("WL_UNKNOWN_ERR");
-  }
-}
+void com::Wifi::set::SSID(String ssid) { m_ssid = ssid; }
 
-String readMac()
-{
-  String mac = String(WiFi.macAddress());
-  mac.remove(2, 1);
-  mac.remove(4, 1);
-  mac.remove(6, 1);
-  mac.remove(8, 1);
-  mac.remove(10, 1);
-  return mac;
-}
+void com::Wifi::set::password(String password) { m_password = password; }
+
+String com::Wifi::get::SSID() { return m_ssid; }
+
+String com::Wifi::get::password() { return m_password; }
+
+IPAddress com::Wifi::get::IP() { return m_local_ip; }
+
+String com::Wifi::get::macAddress() { return m_mac_addr; }
+
+IPAddress com::Wifi::get::subnetMask() { return m_subnet_mask; }
+
+IPAddress com::Wifi::get::gatewayIP() { return m_gateway_ip; }
+
+IPAddress com::Wifi::get::dnsIP() { return m_dns_ip; }
+
+int8_t com::Wifi::get::signal() { return WiFi.RSSI(); }

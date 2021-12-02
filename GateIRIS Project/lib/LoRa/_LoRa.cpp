@@ -1,7 +1,24 @@
-// Inclusões
-#include "_LoRa.h"
+//
+#include "_Lora.h"
 
-void setupLoRa(networkLora *gtw)
+uint32_t aux::LoraPackage::snd::m_dest_addr;
+uint32_t aux::LoraPackage::snd::m_local_addr;
+uint8_t aux::LoraPackage::snd::m_is_on;
+uint8_t aux::LoraPackage::snd::m_size;
+uint32_t aux::LoraPackage::rcv::m_receiver_addr;
+uint32_t aux::LoraPackage::rcv::m_sender_addr;
+int32_t aux::LoraPackage::rcv::m_latitude;
+int32_t aux::LoraPackage::rcv::m_longitude;
+uint8_t aux::LoraPackage::rcv::m_humidity;
+uint8_t aux::LoraPackage::rcv::m_temperature;
+uint8_t aux::LoraPackage::rcv::m_size;
+uint8_t aux::LoraPackage::rcv::m_iterator;
+int8_t aux::LoraPackage::rcv::m_signal;
+
+aux::LoraPackage com::Lora::package;
+uint8_t com::Lora::m_selectedStation = 0;
+
+void com::Lora::begin()
 {
   SPI.begin(SCK, MISO, MOSI, SS);
   LoRa.setPins(SS, RST, DI00);
@@ -13,146 +30,174 @@ void setupLoRa(networkLora *gtw)
   }
   LoRa.enableCrc();
   LoRa.setSpreadingFactor(12);
-  gtw->stationCursor = 0;
-  gtw->sendPacket.packetSize = 0;
 }
 
-void runningLoRa(networkLora *gtw, networkFirebase *fb)
+void com::Lora::opr::duplex()
 {
   static unsigned long tLoRaSend = 0;
   if ((xTaskGetTickCount() - tLoRaSend) > INTERVAL)
   {
-    send_LoRa_Message(gtw, fb);
+    opr::sendPackage();
     tLoRaSend = xTaskGetTickCount();
   }
-  gtw->sendPacket.packetSize = LoRa.parsePacket();
-  receive_LoRa_Message(gtw, fb);
-  gtw->stationCursor += 1;
-  if (gtw->stationCursor >= fb->TOTAL_STATIONS)
-    gtw->stationCursor = 0;
+  opr::readPackage();
+  m_selectedStation += 1;
+  if (m_selectedStation >= com::FirebaseServer::get::totalStations())
+    m_selectedStation = 0;
 }
 
-void send_LoRa_Message(networkLora *gtw, networkFirebase *fb)
+void com::Lora::opr::sendPackage()
 {
-  gtw->sendPacket.packetSize = sizeof(*fb->STATION_ID[gtw->stationCursor]) +
-                               sizeof(gtw->sendPacket) - 2;
-  gtw->sendPacket.isOn = fb->STATION_ID[gtw->stationCursor][ISON];
-  Serial.println(gtw->sendPacket.isOn);
+  package.snd.m_size = (uint8_t)(sizeof(package.snd) - SIZE_CORRECTION(2));
   LoRa.beginPacket();
   // Destino Addr
-  LoRa.write(*fb->STATION_ID[gtw->stationCursor]);
-  LoRa.write(*fb->STATION_ID[gtw->stationCursor] >> 8 & 0xFF);
-  LoRa.write(*fb->STATION_ID[gtw->stationCursor] >> 16 & 0xFF);
-  LoRa.write(*fb->STATION_ID[gtw->stationCursor] >> 24 & 0xFF);
+  LoRa.write(com::FirebaseServer::get::station(m_selectedStation));
+  LoRa.write(com::FirebaseServer::get::station(m_selectedStation) >> 8 & 0xFF);
+  LoRa.write(com::FirebaseServer::get::station(m_selectedStation) >> 16 & 0xFF);
+  LoRa.write(com::FirebaseServer::get::station(m_selectedStation) >> 24 & 0xFF);
   // Local Addr
-  LoRa.write(gtw->sendPacket.localAddr);
-  LoRa.write(gtw->sendPacket.localAddr >> 8 & 0xFF);
-  LoRa.write(gtw->sendPacket.localAddr >> 16 & 0xFF);
-  LoRa.write(gtw->sendPacket.localAddr >> 24 & 0xFF);
+  LoRa.write(package.snd.m_local_addr);
+  LoRa.write(package.snd.m_local_addr >> 8 & 0xFF);
+  LoRa.write(package.snd.m_local_addr >> 16 & 0xFF);
+  LoRa.write(package.snd.m_local_addr >> 24 & 0xFF);
   // Estado
-  LoRa.write(gtw->sendPacket.isOn);
+  LoRa.write(package.snd.m_is_on);
   // Tamanho
-  LoRa.write(gtw->sendPacket.packetSize);
+  LoRa.write(package.snd.m_size);
   // Fim
   LoRa.endPacket();
   // Seto a flag pendência de retorno da estação
-  fb->STATION_ID[gtw->stationCursor][RETURN] = 1;
+  com::FirebaseServer::set::station(m_selectedStation, RETURN, 1);
 }
 
-String receive_LoRa_Message(networkLora *gtw, networkFirebase *fb)
+void com::Lora::opr::readPackage()
 {
-  if (gtw->sendPacket.packetSize == 0)
-    return "[ERR-LORA:NO PACKAGE]";
-  for (register int i = 0; i < 4; i++)
-    gtw->receivedPacket.dest_addr[i] = LoRa.read();
-  for (register int i = 0; i < 4; i++)
-    gtw->receivedPacket.sender_addr[i] = LoRa.read();
-  for (int i = 0; i < fb->TOTAL_STATIONS; i++)
+  uint8_t __identified_size = LoRa.parsePacket();
+  if (!__identified_size)
+    return;
+  uint8_t __receive_addr[4] = {0}, __sender_addr[4] = {0};
+  uint8_t __latitude[4] = {0}, __longitude[4] = {0};
+  uint8_t __sender = 0, __iterator = 0, __size_received = 0;
+  int8_t __humidity = 0, __temperature[2] = {0};
+  for (register uint8_t i = 0; i < 4; i++)
+    __receive_addr[i] = LoRa.read();
+  for (register uint8_t i = 0; i < 4; i++)
+    __sender_addr[i] = LoRa.read();
+  for (register uint8_t i = 0; i < com::FirebaseServer::get::totalStations(); i++)
   {
-    if (asm_addr(gtw->receivedPacket.sender_addr) == *fb->STATION_ID[i])
+    if (spc::SpecialFunctions::asmAddr(__sender_addr) == com::FirebaseServer::get::station(i))
     {
-      gtw->receivedPacket.fSender = 1;
-      gtw->receivedPacket.iterator = i;
+      __sender = 1;
+      __iterator = i;
       break;
     }
   }
-  if (asm_addr(gtw->receivedPacket.dest_addr) != gtw->sendPacket.localAddr || gtw->receivedPacket.fSender == 0)
-    return "[ERR-LORA:IGNORED PACKAGE]"; // Pacote ignorado
-  gtw->receivedPacket.aux_hmdt = LoRa.read();
-  gtw->receivedPacket.aux_temp[0] = LoRa.read();
-  gtw->receivedPacket.aux_temp[1] = LoRa.read();
-  for (register int i = 0; i < 4; i++)
-    gtw->receivedPacket.latitude[i] = LoRa.read();
-  for (register int i = 0; i < 4; i++)
-    gtw->receivedPacket.longitude[i] = LoRa.read();
-  gtw->receivedPacket.packageLength = LoRa.read();
-  if (gtw->receivedPacket.packageLength != gtw->sendPacket.packetSize)
-    return "[ERR-LORA:INCONSISTENT PACKAGE]"; // Pacote inconsistente
-  org_FB_data(gtw, fb);
-  return "";
+  if (spc::SpecialFunctions::asmAddr(__receive_addr) != package.snd.m_local_addr || __sender == 0)
+    return;
+  __humidity = LoRa.read();
+  __temperature[0] = LoRa.read();
+  __temperature[1] = LoRa.read();
+  for (register uint8_t i = 0; i < 4; i++)
+    __latitude[i] = LoRa.read();
+  for (register uint8_t i = 0; i < 4; i++)
+    __longitude[i] = LoRa.read();
+  __size_received = LoRa.read();
+  if (__size_received != __identified_size)
+    return;
+
+  package.rcv.m_sender_addr = spc::SpecialFunctions::asmAddr(__sender_addr);
+  package.rcv.m_humidity = __humidity;
+  package.rcv.m_temperature |= __temperature[0];
+  package.rcv.m_temperature |= __temperature[1] << 8;
+  package.rcv.m_latitude = spc::SpecialFunctions::asmAddr(__latitude);
+  package.rcv.m_longitude = spc::SpecialFunctions::asmAddr(__longitude);
+  package.rcv.m_size = __size_received;
+  package.rcv.m_signal = LoRa.packetRssi();
+  package.rcv.m_iterator = __iterator;
+
+  return;
 }
 
-void org_FB_data(networkLora *gtw, networkFirebase *fb)
+inline void com::Lora::organizeData()
 {
-  uint16_t _aux_temp = 0;
-  int8_t __packet_signal = LoRa.packetRssi(), __aux_packet_signal = 0;
-  _aux_temp |= gtw->receivedPacket.aux_temp[0];
-  _aux_temp |= gtw->receivedPacket.aux_temp[1] << 8;
-  if (__packet_signal >= -35)
+  int8_t __aux_packet_signal = 0;
+  if (package.rcv.m_signal >= -35)
     __aux_packet_signal = 4;
-  else if (__packet_signal < -35 && __packet_signal >= -50)
+  else if (package.rcv.m_signal < -35 && package.rcv.m_signal >= -50)
     __aux_packet_signal = 3;
-  else if (__packet_signal < -50 && __packet_signal >= -80)
+  else if (package.rcv.m_signal < -50 && package.rcv.m_signal >= -80)
     __aux_packet_signal = 2;
-  else if (__packet_signal < -80 && __packet_signal >= -121)
+  else if (package.rcv.m_signal < -80 && package.rcv.m_signal >= -121)
     __aux_packet_signal = 1;
-  else if (__packet_signal < -122 || !fb->STATION_ID[gtw->receivedPacket.iterator][ISCONNECTED])
+  else if (package.rcv.m_signal < -122 || !com::FirebaseServer::get::station(package.rcv.m_iterator, ISCONNECTED))
     __aux_packet_signal = 0;
-  fb->STATION_ID[gtw->receivedPacket.iterator][RETURN] = 0;
-  fb->STATION_ID[gtw->receivedPacket.iterator][STATION_SIGNAL] = __aux_packet_signal;
-  fb->STATION_ID[gtw->receivedPacket.iterator][FB_HUMIDITY] = gtw->receivedPacket.aux_hmdt;
-  fb->STATION_ID[gtw->receivedPacket.iterator][FB_TEMPERATURE] = _aux_temp;
-  if (asm_addr(gtw->receivedPacket.latitude) != 0.000000)
-    fb->STATION_ID[gtw->receivedPacket.iterator][FB_LATITUDE] = asm_addr(gtw->receivedPacket.latitude);
-  if (asm_addr(gtw->receivedPacket.longitude) != 0.000000)
-    fb->STATION_ID[gtw->receivedPacket.iterator][FB_LONGITUDE] = asm_addr(gtw->receivedPacket.longitude);
+  com::FirebaseServer::set::station(package.rcv.m_iterator, RETURN, 0);
+  com::FirebaseServer::set::station(package.rcv.m_iterator, STATION_SIGNAL, __aux_packet_signal);
+  com::FirebaseServer::set::station(package.rcv.m_iterator, FB_HUMIDITY, package.rcv.m_humidity);
+  com::FirebaseServer::set::station(package.rcv.m_iterator, FB_TEMPERATURE, package.rcv.m_temperature);
+  if (package.rcv.m_latitude != 0.000000)
+    com::FirebaseServer::set::station(package.rcv.m_iterator, FB_LATITUDE, package.rcv.m_latitude);
+  if (package.rcv.m_longitude != 0.000000)
+    com::FirebaseServer::set::station(package.rcv.m_iterator, FB_LONGITUDE, package.rcv.m_longitude);
 }
 
-void verify_LoRa_Timeout(networkFirebase *fb)
+void com::Lora::checkTimeout()
 {
   uint8_t rstTmt = 0;
-  for (uint8_t i = 0; i < fb->TOTAL_STATIONS; i++)
+  for (uint8_t i = 0; i < com::FirebaseServer::get::totalStations(); i++)
   {
-    if (fb->STATION_ID[i][RETURN])
+    if (com::FirebaseServer::get::station(i, RETURN))
     {
       rstTmt = 0;
-      fb->STATION_ID[i][ISCONNECTED] = 0;
+      com::FirebaseServer::set::station(i, ISCONNECTED, 0);
     }
-    else if (!fb->STATION_ID[i][RETURN])
+    else if (!com::FirebaseServer::get::station(i, RETURN))
     {
       rstTmt = 1;
-      fb->STATION_ID[i][ISCONNECTED] = 1;
+      com::FirebaseServer::set::station(i, ISCONNECTED, 1);
     }
   }
   static unsigned long tPend = 0;
-  if ((xTaskGetTickCount() - tPend) >= loraTmt && !rstTmt)
+  if ((spc::SpecialFunctions::ctrlTickCount(xTaskGetTickCount(), tPend)) >= loraTmt && !rstTmt)
   {
-    fb->TIMEOUT = 1;
+    com::FirebaseServer::set::timeout(1);
     tPend = xTaskGetTickCount();
   }
   else if (rstTmt)
   {
-    fb->TIMEOUT = 0;
+    com::FirebaseServer::set::timeout(0);
     tPend = xTaskGetTickCount();
   }
 }
 
-uint32_t asm_addr(uint8_t *addr)
-{
-  uint32_t newAddr = 0;
-  newAddr |= addr[0];
-  newAddr |= addr[1] << 8;
-  newAddr |= addr[2] << 16;
-  newAddr |= addr[3] << 24;
-  return newAddr;
-}
+uint32_t aux::LoraPackage::send::get::destinationAddress() { return snd::m_dest_addr; }
+
+uint32_t aux::LoraPackage::send::get::localAddress() { return snd::m_local_addr; }
+
+uint8_t aux::LoraPackage::send::get::valveStatus() { return snd::m_is_on; }
+
+uint8_t aux::LoraPackage::send::get::size() { return snd::m_size; }
+
+void aux::LoraPackage::send::set::destinationAddress(uint32_t value) { snd::m_dest_addr = value; }
+
+void aux::LoraPackage::send::set::localAddress(uint32_t value) { snd::m_local_addr = value; }
+
+void aux::LoraPackage::send::set::valveStatus(uint8_t status) { snd::m_is_on = status; }
+
+uint32_t aux::LoraPackage::receive::get::receiveAddress() { return rcv::m_receiver_addr; }
+
+uint32_t aux::LoraPackage::receive::get::senderAddress() { return rcv::m_sender_addr; }
+
+int32_t aux::LoraPackage::receive::get::latitude() { return rcv::m_latitude; }
+
+int32_t aux::LoraPackage::receive::get::longitude() { return rcv::m_longitude; }
+
+uint8_t aux::LoraPackage::receive::get::temperature() { return rcv::m_temperature; }
+
+uint8_t aux::LoraPackage::receive::get::humidity() { return rcv::m_humidity; }
+
+uint8_t aux::LoraPackage::receive::get::stationNumber() { return rcv::m_iterator; }
+
+int8_t aux::LoraPackage::receive::get::signal() { return rcv::m_signal; }
+
+uint8_t aux::LoraPackage::receive::get::size() { return rcv::m_size; }

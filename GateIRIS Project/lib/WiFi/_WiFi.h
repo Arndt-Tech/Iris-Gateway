@@ -1,29 +1,50 @@
-#ifndef _WIFI_H
-#define _WIFI_H
+#pragma once
 
-// Inclusões
+//
 #include <Arduino.h>
 #include <FreeRTOS.h>
 #include <WiFi.h>
-#include "specialFunc.h"
+#include "pinout.h"
+#include "debug.h"
+#include "specialFunctions.h"
 
-// Struct's
-typedef struct _wifi
+/**
+ * @brief Communication
+ * 
+ */
+namespace com
 {
-  String SSID;
-  String PASSWORD;
-  IPAddress LOCAL_IP;
-  String MAC_ADDR;
-  IPAddress SUBNET_MASK;
-  IPAddress GATEWAY_IP;
-  IPAddress DNS_IP;
-  int8_t SIGNAL;
-} networkWiFi;
+  class Wifi
+  {
+  private:
+    static String m_ssid;
+    static String m_password;
+    static IPAddress m_local_ip;
+    static String m_mac_addr;
+    static IPAddress m_subnet_mask;
+    static IPAddress m_gateway_ip;
+    static IPAddress m_dns_ip;
+    static int8_t m_signal;
 
-// Funções
-bool connectWifi(networkWiFi *wifi);
-void reconnectWiFi(networkWiFi *wifi);
-String wifiStatusDebug(wl_status_t wfStatus);
-String readMac();
+  public:
+    bool connect();
+    void reconnect();
+    struct set
+    {
+      static void SSID(String ssid);
+      static void password(String password);
+    } set;
 
-#endif
+    struct get
+    {
+      static String SSID();
+      static String password();
+      static IPAddress IP();
+      static String macAddress();
+      static IPAddress subnetMask();
+      static IPAddress gatewayIP();
+      static IPAddress dnsIP();
+      static int8_t signal();
+    } get;
+  };
+}

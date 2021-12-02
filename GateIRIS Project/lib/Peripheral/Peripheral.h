@@ -1,17 +1,27 @@
-#ifndef _PERIPHERAL_H_
-#define _PERIPHERAL_H_
+#pragma once
 
-// Inclusões
+// 
 #include <Arduino.h>
 #include <FreeRTOS.h>
 #include "pinout.h"
-#include "_EEPROM.h"
-#include "specialFunc.h"
+#include "debug.h"
+#include "Log.h"
+#include "specialFunctions.h"
 
-// Definições
-#define resetTime(a) (uint8_t)a
+// 
+#define resetTime(a) (uint8_t) a
 
-// Funções
-void resetClear();
+/**
+ * @brief Peripherals.
+ * 
+ */
+namespace per
+{
+  class GPIO
+  {
+    public:
+      static void checkReset();
+  };
+}
 
-#endif
+

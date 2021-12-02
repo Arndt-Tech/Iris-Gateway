@@ -1,18 +1,18 @@
-// Inclusões
+// 
 #include "Peripheral.h"
 
 // Funções
-void resetClear()
+void per::GPIO::checkReset()
 {
   uint8_t counter = 0;
   while (digitalRead(resetEEPROM))
   {
     vTaskDelay(1000);
     counter++;
-    if (counter >= resetTime(3))
+    if (counter >= resetTime(5))
     {
-      clearEEPROM(0, EEPROM_SIZE);
-      resetModule();
+      cfg::Log::clear(0, EEPROM_SIZE);
+      spc::SpecialFunctions::resetModule();
     }
   }
 }

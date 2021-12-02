@@ -1,5 +1,4 @@
-#ifndef _PINOUT_H_
-#define _PINOUT_H_
+#pragma once
 
 /* | ---------- | GateIRIS Hardware Mapping | ---------- | */
 
@@ -21,5 +20,3 @@
 #define SS 18
 #define RST 14
 #define DI00 26
-
-#endif

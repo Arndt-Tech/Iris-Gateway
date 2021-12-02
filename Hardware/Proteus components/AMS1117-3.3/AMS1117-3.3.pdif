@@ -1,0 +1,193 @@
+;Proteus Design Interchange Format
+
+(PDIF
+  (vendor "Labcenter Electronics")
+  (version 1 0)
+  (library
+    (part "AMS111733"
+      (family "ANA")
+      (package "SOT229P700X1804N")
+      (description "Sot223/Pkg_1-Amp_3.3-Volt_Low_Drop_Out_Voltage_Regulatator")
+      (attribute "PKG_TYPE" "SOT229P700X1804N")
+      (attribute "PRICE" "None")
+      (attribute "PARTREV" "NA")
+      (attribute "PACKAGE" "SOT-223_ams")
+      (attribute "STANDARD" "IPC-7351B")
+      (attribute "MANUFACTURER" "Advanced_Mololithic_Systems")
+      (attribute "AVAILABILITY" "Unavailable")
+      (attribute "MP" "AMS1117-3.3")
+      (gate
+        (swap 1)
+        (symbol "AMS111733")
+        (pin "ADJ/GND" 1 (type PP))
+        (pin "VIN" 3 (type IP))
+        (pin "VOUT" 2 (type OP))
+      )
+    )
+    (symbol "AMS111733"
+      (units THOU)
+      (graphic
+        (stroke 1)
+        (path (pt -400 200) (pt 400 200) (pt 400 -200) (pt -400 -200) (pt -400 200) (closed))
+      )
+      (terminal
+        (body (symbol "PIN_R180_U_L200") (pt 600.0 -100.0) (rot 0) (mir 0) (visible true))
+        (name (pt -239.37 0.0) (rot 0) (just MIDDLE RIGHT) (visible true))
+        (number (pt -39.37 0.0) (rot 0) (just MIDDLE RIGHT) (visible true))
+      )
+      (terminal
+        (body (symbol "PIN_R0_U_L200") (pt -600.0 100.0) (rot 0) (mir 0) (visible true))
+        (name (pt 239.37 0.0) (rot 0) (just MIDDLE LEFT) (visible true))
+        (number (pt -39.37 0.0) (rot 0) (just MIDDLE LEFT) (visible true))
+      )
+      (terminal
+        (body (symbol "PIN_R180_U_L200") (pt 600.0 100.0) (rot 0) (mir 0) (visible true))
+        (name (pt -239.37 0.0) (rot 0) (just MIDDLE RIGHT) (visible true))
+        (number (pt -39.37 0.0) (rot 0) (just MIDDLE RIGHT) (visible true))
+      )
+    )
+    (symbol "PIN_R180_U_L200"
+      (units THOU)
+      (graphic
+        (stroke 6.5)
+        (path (pt 0.0 0.0) (pt -200.0 0.0))
+      )
+    )
+    (symbol "PIN_R0_U_L200"
+      (units THOU)
+      (graphic
+        (stroke 6.5)
+        (path (pt 0.0 0.0) (pt 200.0 0.0))
+      )
+    )
+    (package "SOT229P700X1804N"
+      (units THOU)
+      (layer TSLK
+        (graphic
+          (stroke 5.0)
+          (path (pt -132.28 -73.23) (pt -132.28 73.23))
+        )
+        (graphic
+          (stroke 5.0)
+          (path (pt 132.28 -73.23) (pt 132.28 73.23))
+        )
+        (graphic
+          (stroke 5.0)
+          (path (pt -132.28 -73.23) (pt -122.05 -73.23))
+        )
+        (graphic
+          (stroke 5.0)
+          (path (pt 122.44 -73.23) (pt 132.28 -73.23))
+        )
+        (graphic
+          (stroke 5.0)
+          (path (pt 132.28 73.23) (pt 73.62 73.23))
+        )
+        (graphic
+          (stroke 5.0)
+          (path (pt -69.29 73.23) (pt -132.28 73.23))
+        )
+        (graphic
+          (stroke 7.87)
+          (circle (pt -94.09 -172.17) (pt -86.22 -172.17))
+        )
+      )
+      (layer TASM
+        (graphic
+          (stroke 5.0)
+          (path (pt -132.28 -73.23) (pt -132.28 73.23))
+        )
+        (graphic
+          (stroke 5.0)
+          (path (pt -132.28 73.23) (pt 132.28 73.23))
+        )
+        (graphic
+          (stroke 5.0)
+          (path (pt 132.28 73.23) (pt 132.28 -73.23))
+        )
+        (graphic
+          (stroke 5.0)
+          (path (pt 132.28 -73.23) (pt -132.28 -73.23))
+        )
+      )
+      (layer OCCA
+        (graphic
+          (stroke 1.97)
+          (path (pt -142.13 83.07) (pt -142.13 -83.07))
+        )
+        (graphic
+          (stroke 1.97)
+          (path (pt -142.13 -83.07) (pt -118.5 -83.07))
+        )
+        (graphic
+          (stroke 1.97)
+          (path (pt -118.5 -83.07) (pt -118.5 -167.32))
+        )
+        (graphic
+          (stroke 1.97)
+          (path (pt -118.5 -167.32) (pt 118.5 -167.32))
+        )
+        (graphic
+          (stroke 1.97)
+          (path (pt 118.5 -167.32) (pt 118.5 -83.07))
+        )
+        (graphic
+          (stroke 1.97)
+          (path (pt 118.5 -83.07) (pt 142.13 -83.07))
+        )
+        (graphic
+          (stroke 1.97)
+          (path (pt 142.13 -83.07) (pt 142.13 83.07))
+        )
+        (graphic
+          (stroke 1.97)
+          (path (pt 142.13 83.07) (pt 73.62 83.07))
+        )
+        (graphic
+          (stroke 1.97)
+          (path (pt 73.62 83.07) (pt 73.62 167.32))
+        )
+        (graphic
+          (stroke 1.97)
+          (path (pt 73.62 167.32) (pt -73.62 167.32))
+        )
+        (graphic
+          (stroke 1.97)
+          (path (pt -73.62 167.32) (pt -73.62 83.07))
+        )
+        (graphic
+          (stroke 1.97)
+          (path (pt -73.62 83.07) (pt -142.13 83.07))
+        )
+      )
+      (leg 1 (pt -90.16 -131.69) (padstack 1))
+      (leg 2 (pt 0 -131.69) (padstack 2))
+      (leg 3 (pt 90.16 -131.69) (padstack 3))
+      (leg 4 (pt 0 131.69) (padstack 4))
+      (padstack 1
+        (pad (layer TCOP) (rectf 36.61 51.57 0 2.75 90.0))
+        (pad (layer TRES) (rectf 36.61 51.57 0 2.75 90.0))
+        (pad (layer TPST) (rectf 36.61 51.57 0 2.75 90.0))
+      )
+      (padstack 2
+        (pad (layer TCOP) (rectf 36.61 51.57 0 2.75 90.0))
+        (pad (layer TRES) (rectf 36.61 51.57 0 2.75 90.0))
+        (pad (layer TPST) (rectf 36.61 51.57 0 2.75 90.0))
+      )
+      (padstack 3
+        (pad (layer TCOP) (rectf 36.61 51.57 0 2.75 90.0))
+        (pad (layer TRES) (rectf 36.61 51.57 0 2.75 90.0))
+        (pad (layer TPST) (rectf 36.61 51.57 0 2.75 90.0))
+      )
+      (padstack 4
+        (pad (layer TCOP) (rectf 51.57 127.56 0 3.87 0))
+        (pad (layer TRES) (rectf 51.57 127.56 0 3.87 0))
+        (pad (layer TPST) (rectf 51.57 127.56 0 3.87 0))
+      )
+      (model AMS1117-3.3.step
+        (euler 0 0 0)
+        (offset 0 0 0)
+      )
+    )
+  )
+)

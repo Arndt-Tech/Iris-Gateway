@@ -1,238 +1,324 @@
 #include "Bluetooth.h"
 
-// Callback's
-// Estado de conexão bluetooth
-class CallbackServer : public BLEServerCallbacks
+BLEServer *com::BLE::m_serverBT = NULL;
+BLECharacteristic *com::BLE::m_characteristic_TX = NULL;
+BLECharacteristic *com::BLE::m_characteristic_RX = NULL;
+uint8_t com::BLE::m_repeatDataFilter = 1;
+String com::BLE::m_data = "";
+uint8_t com::BLE::m_connected = 0;
+
+/**
+ * @brief Bluetooth connection status callback.
+ * 
+ */
+class CallbackServer final : public BLEServerCallbacks, com::BLE
 {
-  void onConnect(BLEServer *serverBT) { BLE.connected = 1; }    // Dispositivo conectado
-  void onDisconnect(BLEServer *serverBT) { BLE.connected = 0; } // Dispositivo desconectado
+  void onConnect(BLEServer *serverBT) { com::BLE::setConnectionStatus(1); }
+  void onDisconnect(BLEServer *serverBT) { com::BLE::setConnectionStatus(0); }
 };
 
-// Recebimento de dados bluetooth
-class CallbackRX : public BLECharacteristicCallbacks
+/**
+ * @brief Bluetooth data callback.
+ * 
+ */
+class CallbackRX final : public BLECharacteristicCallbacks, com::BLE
 {
-  void onWrite(BLECharacteristic *characteristic_TX) { callbackBLE(&BLE); }
+  void onWrite(BLECharacteristic *characteristic_TX) { com::BLE::callback(); }
 };
 
-// Funções
-void setupBluetooth(networkBluetooth *ble)
-{
-  BLEDevice::init("GateIRIS");
-
-  // Cria server
-  ble->serverBT = BLEDevice::createServer();
-
-  // Seta callback, para idenficar se o dispositivo está conectado
-  ble->serverBT->setCallbacks(new CallbackServer());
-
-  // Cria um serviço
-  BLEService *serviceBT = ble->serverBT->createService(SERVICE_UUID);
-
-  // Cria uma caracteristica de serviço para TX
-  ble->characteristic_TX = serviceBT->createCharacteristic(CHARACTERISTIC_UUID_TX, BLECharacteristic::PROPERTY_READ);
-
-  // Cria uma caracteristica de serviço para RX
-  ble->characteristic_RX = serviceBT->createCharacteristic(CHARACTERISTIC_UUID_RX, BLECharacteristic::PROPERTY_WRITE);
-
-  // Seta callback de recebimento
-  ble->characteristic_RX->setCallbacks(new CallbackRX());
-
-  // Adiciona um descritor RX
-  ble->characteristic_RX->addDescriptor(new BLE2902());
-
-  // Inicia serviço
-  serviceBT->start();
-
-  // Cria a propagação do dispositivo no serviço "SERVICE_UUID"
-  BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
-  pAdvertising->addServiceUUID(SERVICE_UUID);
-
-  // Inicia propagação do dispositivo
-  BLEDevice::startAdvertising();
-
-  ble->repeatDataFilter = 1; // Desativa filtro contra repetição de dados
-
-  bluetoothConfig(ble);
-}
-
-void callbackBLE(networkBluetooth *ble)
+/**
+ * @brief Callback.
+ * 
+ */
+void com::BLE::callback()
 {
   static String oldData;
   String auxData = "";
-  ble->data = "";
-  std::string BT_rxData = ble->characteristic_RX->getValue();
+  m_data = "";
+  std::string BT_rxData = m_characteristic_RX->getValue();
   if (BT_rxData.length() > 0)
   {
     for (register uint8_t i = 0; i < BT_rxData.length(); i++)
       auxData += (char)(BT_rxData[i]);
-    if (ble->repeatDataFilter)
+    if (m_repeatDataFilter)
     {
       if (auxData == oldData)
         return;
       else if (auxData != oldData)
       {
-        ble->data = auxData;
+        m_data = auxData;
         oldData = auxData;
       }
     }
     else
-      ble->data = auxData;
+      m_data = auxData;
   }
 }
 
-void waitingBT(networkBluetooth *ble) // Aguarda bluetooth conectar
+void com::BLE::begin()
 {
-  Serial.println("Esperando conexão bluetooth...");
-  while (!ble->connected)
+  BLEDevice::init("GateIRIS");
+
+  // Create server
+  m_serverBT = BLEDevice::createServer();
+
+  // Create connection state callback.
+  m_serverBT->setCallbacks(new CallbackServer());
+
+  // Create service.
+  BLEService *m_serviceBT = m_serverBT->createService(SERVICE_UUID);
+
+  // Create TX characteristic.
+  m_characteristic_TX = m_serviceBT->createCharacteristic(CHARACTERISTIC_UUID_TX, BLECharacteristic::PROPERTY_READ);
+
+  // Create RX characteristic.
+  m_characteristic_RX = m_serviceBT->createCharacteristic(CHARACTERISTIC_UUID_RX, BLECharacteristic::PROPERTY_WRITE);
+
+  // Create downstream callback.
+  m_characteristic_RX->setCallbacks(new CallbackRX());
+
+  // Add descriptor.
+  m_characteristic_RX->addDescriptor(new BLE2902());
+
+  // initialize service.
+  m_serviceBT->start();
+
+  // Set propagation.
+  BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
+  pAdvertising->addServiceUUID(SERVICE_UUID);
+
+  // Start propagation.
+  BLEDevice::startAdvertising();
+
+  // Enables filter against data repetition.
+  m_repeatDataFilter = 1;
+
+  config();
+}
+
+/**
+ * @brief Waiting for connection.
+ * 
+ */
+void com::BLE::waiting()
+{
+#if _DEBUG_MODE_
+  Serial.println("Waiting for bluetooth connection...");
+#elif !_DEBUG_MODE_
+#endif
+  while (!m_connected)
   {
     Serial.print(".");
     vTaskDelay(500);
   }
-  Serial.println("Bluetooth conectado!");
+#if _DEBUG_MODE_
+  Serial.println("Bluetooth connected!");
+#elif !_DEBUG_MODE_
+#endif
 }
 
-void waitingSYNC(networkBluetooth *ble) // Aguarda sincronização da comunicação
+/**
+ * @brief Wait sync.
+ * 
+ */
+void com::BLE::waitingSYNC()
 {
-  ble->repeatDataFilter = 0;  // Desativa filtro contra repetição de dados
-  Serial.println("Aguardando sincronização");
-  while (getData(ble) != SYNC_FLAG)
+  // Disable data filter
+  m_repeatDataFilter = 0;
+#if _DEBUG_MODE_
+  Serial.println("Waiting for synchronization.");
+#elif !_DEBUG_MODE_
+#endif
+  while (read() != SYNC_FLAG)
   {
     Serial.print(".");
     vTaskDelay(500);
   }
-  Serial.println("Bluetooth sincronizado!");
-  ble->repeatDataFilter = 1; // Ativa filtro contra repetição de dados
+#if _DEBUG_MODE_
+  Serial.println("Synchronized Bluetooth!");
+#elif !_DEBUG_MODE_
+#endif
+  // Enable data filter
+  m_repeatDataFilter = 1;
 }
 
-void waitingREQUEST(networkBluetooth *ble) // Aguarda requisição do clientAPP
+void com::BLE::sendRequest()
 {
-  Serial.println("Esperando requisição ");
-  while(!getRequestBT(ble));
+#if _DEBUG_MODE_
+  Serial.println("Sending request...");
+#elif !_DEBUG_MODE_
+#endif
+  m_data = "";
+  write(passwordClientAppBT);
+#if _DEBUG_MODE_
+  Serial.println("Request sent!");
+#elif !_DEBUG_MODE_
+#endif
+}
+
+/**
+ * @brief Waiting for app request.
+ * 
+ */
+    void com::BLE::waitingRequest()
+{
+#if _DEBUG_MODE_
+  Serial.println("Waiting for request.");
+#elif !_DEBUG_MODE_
+#endif
+  while (!getRequest())
+    ;
   {
     Serial.print(".");
     vTaskDelay(500);
   }
-  Serial.println("\nRequisição aceita: " + String(getRequestBT(ble)));
+#if _DEBUG_MODE_
+  Serial.println("\nRequest accepted: " + String(getRequest()));
+#elif !_DEBUG_MODE_
+#endif
   vTaskDelay(10);
 }
 
-void sendREQUEST(networkBluetooth *ble) // Envia requisição para clientAPP
+/**
+ * @brief Sends data via bluetooth.
+ * 
+ * @param data Data to write.
+ * @return Written data.
+ */
+String com::BLE::write(String data)
 {
-  Serial.println("Enviando request...");
-  ble->data = ""; // Limpeza do buffer
-  writeBT(ble, passwordClientAppBT);
-  Serial.println("Request enviado!");
-}
-
-String writeBT(networkBluetooth *ble, String dados)
-{
-  unsigned long timeBT = 0;
-  if (ble->connected)
+  TickType_t timeBT = 0;
+  if (m_connected)
   {
-    if ((xTaskGetTickCount() - timeBT) > 4)
+    if ((spc::SpecialFunctions::ctrlTickCount(xTaskGetTickCount(), timeBT)) > 4)
     {
-      ble->characteristic_TX->setValue(dados.c_str());
-      ble->characteristic_TX->notify();
+      m_characteristic_TX->setValue(data.c_str());
+      m_characteristic_TX->notify();
       timeBT = xTaskGetTickCount();
     }
-    return dados;
+    return data;
   }
   else
     return "";
 }
 
-String getData(networkBluetooth *ble) // Função de leitura conjunta com callback
+String com::BLE::read()
 {
-  ble->data = "";
+  m_data = "";
   while (1)
   {
-    refreshConnectionBT(ble);
-    if (ble->connected)
-      if (ble->data.length() != 0 && (ble->data.length() == (ble->characteristic_RX->getValue()).length()))
+    refresh();
+    if (m_connected)
+      if (m_data.length() != 0 && (m_data.length() == (m_characteristic_RX->getValue()).length()))
       {
-        Serial.println(ble->data);
-        return (ble->data);
+        Serial.println(m_data);
+        return (m_data);
       }
   }
 }
 
-bool getRequestBT(networkBluetooth *ble)
+/**
+ * @brief Check request received.
+ * 
+ * @return Request is true or reset device. 
+ */
+bool com::BLE::getRequest()
 {
   while (1)
   {
-    refreshConnectionBT(ble);
-    if (ble->connected)
+    refresh();
+    if (m_connected)
     {
-      if (ble->data.length() != 0 && (ble->data.length() == (ble->characteristic_RX->getValue()).length()))
+      if (m_data.length() != 0 && (m_data.length() == (m_characteristic_RX->getValue()).length()))
       {
-        if (ble->data == requestClientAppBT)
+        if (m_data == requestClientAppBT)
         {
-          writeBT(ble, "#");
+          write("#");
           return 1;
         }
         else
-          resetModule();
+          spc::SpecialFunctions::resetModule();
       }
     }
   }
 }
 
-void refreshConnectionBT(networkBluetooth *ble)
+/**
+ * @brief Update connection state.
+ * 
+ */
+void com::BLE::refresh()
 {
   static uint8_t oldDeviceConnected = 1;
-  if (!ble->connected && oldDeviceConnected) // Atualiza conexão -> desconectado
+  if (!m_connected && oldDeviceConnected)
   {
-    Serial.println("Bluetooth desconectado!");
+#if _DEBUG_MODE_
+    Serial.println("Bluetooth disconnected!");
+#elif !_DEBUG_MODE_
+#endif
     vTaskDelay(500);
-    ble->data = ""; // Limpa o buffer
-    ble->serverBT->startAdvertising();
-    oldDeviceConnected = ble->connected;
+    m_data = ""; // Limpa o buffer
+    m_serverBT->startAdvertising();
+    oldDeviceConnected = m_connected;
   }
-  if (ble->connected && !oldDeviceConnected) // Atualiza conexão -> conectado
+  if (m_connected && !oldDeviceConnected)
   {
-    Serial.println("Bluetooth reconectado!");
-    oldDeviceConnected = ble->connected;
+#if _DEBUG_MODE_
+    Serial.println("Bluetooth reconnected!");
+#elif !_DEBUG_MODE_
+#endif
+    oldDeviceConnected = m_connected;
   }
 }
 
-void getWiFi(networkBluetooth *ble, networkWiFi *wifi)
+void com::BLE::wifi()
 {
-  writeBT(ble, APP_SENDS_SSID);
-  wifi->SSID = getData(ble);
-  ble->repeatDataFilter = 0; // Desativa filtro contra repetição de dados
-  writeBT(ble, APP_SENDS_PASSWORD);
-  wifi->PASSWORD = getData(ble);
-  ble->repeatDataFilter = 1; // Ativa filtro contra repetição de dados
+  com::BLE::write(APP_SENDS_SSID);
+  com::Wifi::set::SSID(com::BLE::read());
+  m_repeatDataFilter = 0; // Desativa filtro contra repetição de dados
+  com::BLE::write(APP_SENDS_PASSWORD);
+  com::Wifi::set::password(com::BLE::read());
+  m_repeatDataFilter = 1; // Ativa filtro contra repetição de dados
 }
 
-void getFirebase(networkBluetooth *ble, networkFirebase *fb, networkLora *gtw)
+void com::BLE::firebaseID()
 {
-  writeBT(ble, APP_SENDS_USERID);
-  fb->USER_ID = getData(ble);
-  gtw->sendPacket.localAddr = atol(writeBT(ble, String(getChipID())).c_str());
-  fb->GATEWAY_ID = gtw->sendPacket.localAddr;
+  com::BLE::write(APP_SENDS_USERID);
+  com::FirebaseServer::set::userID(com::BLE::read());
+  com::BLE::write(String(spc::SpecialFunctions::getChipID())).c_str();
 }
 
-void bluetoothConfig(networkBluetooth *ble)
+/**
+ * @brief IRIS protocol configuration.
+ * 
+ * @param st Reference for LoRa communication from the station.
+ */
+void com::BLE::config()
 {
   // Configurações do bluetooth
 
   // Espera conexão com clientAPP
-  waitingBT(ble);
+  waiting();
 
   // Espera sincronização do clientAPP
-  waitingSYNC(ble);
+  waitingSYNC();
 
   // Envia request para o clientAPP
-  sendREQUEST(ble);
+  sendRequest();
 
   // Espera para receber o request do clientAPP
-  waitingREQUEST(ble);
+  waitingRequest();
 
-  //  Fim das configurações bluetooth
+  wifi();
+
+  firebaseID();
 }
 
-void bleDisable()
+/**
+ * @brief Disable bluetooth.
+ * 
+ */
+void com::BLE::disable()
 {
   esp_bluedroid_disable();
   esp_bluedroid_deinit();
@@ -240,3 +326,7 @@ void bleDisable()
   esp_bt_controller_deinit();
   esp_bt_mem_release(ESP_BT_MODE_BTDM);
 }
+
+esp_bt_controller_status_t com::BLE::getStatus() { return esp_bt_controller_get_status(); }
+
+void com::BLE::setConnectionStatus(uint8_t status) { m_connected = status; }
