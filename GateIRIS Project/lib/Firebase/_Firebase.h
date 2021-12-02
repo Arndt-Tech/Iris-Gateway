@@ -55,12 +55,12 @@ namespace com
     static uint8_t m_sync_refresh;
     static uint8_t m_status;
     static uint8_t m_timeout;
+    static String m_token;
+    static token_info_t m_token_info;
 
   private:
     void runConnectionStatusSystem();
     static uint8_t refreshStations();
-    void tokenStatus(token_info_t token);
-    void tokenType(token_info_t token);
 
   public:
     void begin();
@@ -77,6 +77,8 @@ namespace com
       static uint8_t status();
       static int32_t station(uint8_t station, uint8_t param);
       static int32_t station(uint8_t station);
+      static String token();
+      static token_info_t tokenInfo();
     } get;
     struct set
     {

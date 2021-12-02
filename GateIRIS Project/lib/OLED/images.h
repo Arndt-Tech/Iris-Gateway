@@ -1,3 +1,5 @@
+#pragma once
+
 // Inclusões
 #include <Arduino.h>
 #include <FreeRTOS.h>

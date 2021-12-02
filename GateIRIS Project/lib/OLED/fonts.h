@@ -1,5 +1,4 @@
-#ifndef __IMAGES_H_
-#define __IMAGES_H_
+#pragma once
 
 //Font creator --> https://oleddisplay.squix.ch/#/home
 
@@ -1596,4 +1595,3 @@ const uint8_t Meteocons_Regular_20[] PROGMEM = {
 };
 
 
-#endif

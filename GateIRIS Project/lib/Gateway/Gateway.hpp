@@ -11,6 +11,7 @@
 #include "_WiFi.h"
 #include "_Firebase.h"
 #include "_LoRa.h"
+#include "Additional.hpp"
 
 namespace gtw
 {
@@ -19,6 +20,7 @@ namespace gtw
   private:
     //cfg::Log m_log;
     //spc::SpecialFunctions m_spc;
+    static add::Additional m_additional;
     static per::GPIO m_gpio;
     static com::BLE m_ble;
     static com::Wifi m_wifi;
@@ -42,6 +44,7 @@ namespace gtw
     } manage;
 
   public:
+    static add::Additional &Additional();
     void begin();
   };
 }

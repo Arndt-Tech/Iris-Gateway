@@ -1,5 +1,4 @@
-#ifndef _OLED_H
-#define _OLED_H
+#pragma once
 
 // Inclusões
 #include <Arduino.h>
@@ -10,7 +9,6 @@
 #include "fonts.h"
 #include "images.h"
 #include "icons.h"
-#include "ChipID.h"
 #include "Bluetooth.h"
 #include "_WiFi.h"
 #include "_Firebase.h"
@@ -21,4 +19,3 @@ void setupOLED();
 void dataBar(networkBluetooth *ble, networkWiFi *wifi, networkFirebase *fb, networkLora *gtw, bool commit, bool clear);
 void runnigSystem(networkLora *gtw, bool commit, bool clear);
 
-#endif

@@ -11,6 +11,8 @@ uint8_t com::FirebaseServer::m_refresh_stations;
 uint8_t com::FirebaseServer::m_sync_refresh;
 uint8_t com::FirebaseServer::m_status;
 uint8_t com::FirebaseServer::m_timeout;
+String com::FirebaseServer::m_token;
+token_info_t com::FirebaseServer::m_token_info;
 
 void com::FirebaseServer::begin()
 {
@@ -19,16 +21,9 @@ void com::FirebaseServer::begin()
   m_config.api_key = FIREBASE_API;
   Firebase.begin(&m_config, &m_auth);
   Firebase.reconnectWiFi(true);
-  Serial.println("Gerando token");
-  while (!Firebase.ready())
-  {
-    Serial.print(".");
-    delay(500);
-  }
-  tokenStatus(Firebase.authTokenInfo());
-  tokenType(Firebase.authTokenInfo());
+  m_token_info = Firebase.authTokenInfo();
   if (Firebase.ready())
-    Serial.println("Token: \n" + String(Firebase.getToken()) + "\n");
+    m_token = String(Firebase.getToken());
   refreshStations();
 }
 
@@ -114,15 +109,11 @@ void com::FirebaseServer::opr::updateRequest()
       m_refresh_stations = __refresh_aux;
     if (m_refresh_stations)
     {
-      Serial.println("Refreshing");
       if (refreshStations())
       {
         Firebase.RTDB.setBool(&m_firebase_data, CENTER_REFRESH_STATIONS_RTDB, false);
         m_refresh_stations = 0;
-        Serial.println("Refreshed");
       }
-      else
-        Serial.println("Not refreshed");
     }
   }
   if (Firebase.ready() && m_total_stations > 0 && m_station[stationCursor][ISCONNECTED])
@@ -173,69 +164,9 @@ void com::FirebaseServer::set::timeout(uint8_t fTimeout) { m_timeout = fTimeout;
 
 uint8_t com::FirebaseServer::get::status() { return m_status; }
 
-void com::FirebaseServer::tokenStatus(token_info_t token)
-{
-  switch (token.status)
-  {
-  case token_status_uninitialized:
-    Serial.println("Token nao inicializado.");
-    break;
+String com::FirebaseServer::get::token() { return m_token; }
 
-  case token_status_on_initialize:
-    Serial.println("Token inicializando.");
-    break;
-
-  case token_status_on_signing:
-    Serial.println("Token em assinatura.");
-    break;
-
-  case token_status_on_request:
-    Serial.println("Token em solicitacao.");
-    break;
-
-  case token_status_on_refresh:
-    Serial.println("Token atualizando.");
-    break;
-
-  case token_status_ready:
-    Serial.println("Token pronto.");
-    break;
-
-  case token_status_error:
-    Serial.println("Erro ao inicializar token.");
-    break;
-  }
-}
-
-void com::FirebaseServer::tokenType(token_info_t token)
-{
-  switch (token.type)
-  {
-  case token_type_undefined:
-    Serial.println("Token de tipo indefinido.");
-    break;
-
-  case token_type_legacy_token:
-    Serial.println("Token de tipo legado.");
-    break;
-
-  case token_type_id_token:
-    Serial.println("Token de tipo ID.");
-    break;
-
-  case token_type_custom_token:
-    Serial.println("Token de tipo customizado.");
-    break;
-
-  case token_type_oauth2_access_token:
-    Serial.println("Token de tipo OAuth2.0.");
-    break;
-
-  case token_type_refresh_token:
-    Serial.println("Token de tipo atualizacao.");
-    break;
-  }
-}
+token_info_t com::FirebaseServer::get::tokenInfo() { return m_token_info; }
 
 /*
 void firestoreWrite(networkFirebase *fb)

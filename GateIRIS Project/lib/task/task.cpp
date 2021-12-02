@@ -1,16 +1,16 @@
-// Inclusões
+// 
 #include "task.h"
 
-extern gtw::Gateway gateway;
 
-// Funções
+
+// 
 void setupTasks()
 {
   xTaskCreatePinnedToCore(taskLoRa, "taskLora", STACK(4096), NULL, PRIORITY(5), NULL, CORE(0));
   xTaskCreatePinnedToCore(taskLoRaTimeout, "taskLoRaTimeout", STACK(2048), NULL, PRIORITY(5), NULL, CORE(0));
 }
 
-// Tasks
+// 
 void taskReset(void *pvParameters)
 {
   while (1)

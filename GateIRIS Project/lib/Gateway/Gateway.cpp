@@ -1,10 +1,13 @@
 #include "Gateway.hpp"
 
+add::Additional gtw::Gateway::m_additional;
 per::GPIO gtw::Gateway::m_gpio;
 com::BLE gtw::Gateway::m_ble;
 com::Wifi gtw::Gateway::m_wifi;
 com::FirebaseServer gtw::Gateway::m_firebase;
 com::Lora gtw::Gateway::m_lora;
+
+add::Additional &gtw::Gateway::Additional() { return m_additional; }
 
 per::GPIO &gtw::Gateway::manage::GPIO() { return m_gpio; }
 
@@ -16,14 +19,11 @@ com::FirebaseServer &gtw::Gateway::manage::Firebase() { return m_firebase; }
 
 com::Lora &gtw::Gateway::manage::LoRa() { return m_lora; }
 
+
 void gtw::Gateway::begin()
 {
   pinMode(resetEEPROM, INPUT);
   cfg::Log::begin();
-#if _DEBUG_MODE_
-  Serial.begin(115200);
-#elif !_DEBUG_MODE_
-#endif
   checkSystem();
   m_firebase.begin();
   m_lora.begin();
