@@ -89,8 +89,9 @@ namespace aux
       uint32_t m_receiver_addr, m_sender_addr;
       int32_t m_latitude, m_longitude;
       uint8_t m_humidity;
-      uint16_t m_temperature;
+      int16_t m_temperature;
       uint8_t m_size, m_iterator;
+      uint8_t m_valveStatus;
       int16_t m_signal;
     } static rcv;
 
@@ -123,6 +124,7 @@ namespace aux
         int16_t temperature() const;
         uint8_t humidity() const;
         uint8_t stationNumber() const;
+        uint8_t valve() const;
         int16_t signal() const;
         uint8_t size() const;
       } get;

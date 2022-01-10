@@ -135,7 +135,7 @@ void com::FirebaseServer::opr::dataUpload()
     {
       for (register uint8_t i = 0; i < m_total_stations; i++)
       {
-        Firebase.RTDB.setFloat(&m_firebase_data, CENTER_TEMPERATURE_RTDB, (float)m_station[i][FB_TEMPERATURE] / 10);
+        Firebase.RTDB.setFloat(&m_firebase_data, CENTER_TEMPERATURE_RTDB, (double)m_station[i][FB_TEMPERATURE] / 10);
         Firebase.RTDB.setInt(&m_firebase_data, CENTER_HUMIDITY_RTDB, m_station[i][FB_HUMIDITY]);
         Firebase.RTDB.setDouble(&m_firebase_data, CENTER_LATITUDE_RTDB, (double)m_station[i][FB_LATITUDE] / (-1E6));
         Firebase.RTDB.setDouble(&m_firebase_data, CENTER_LONGITUDE_RTDB, (double)m_station[i][FB_LONGITUDE] / (-1E6));
@@ -146,8 +146,27 @@ void com::FirebaseServer::opr::dataUpload()
 
 void com::FirebaseServer::opr::dataDownload()
 {
+  static uint8_t init = 0;
   if (Firebase.ready() && m_total_stations > 0)
   {
+    if (!init)
+    {
+      init = 1;
+      double lat = 0, lon = 0;
+      float temp = 0;
+      uint8_t humid = 0;
+      for (register uint8_t i = 0; i < m_total_stations; i++)
+      {
+        if (Firebase.RTDB.getFloat(&m_firebase_data, CENTER_TEMPERATURE_RTDB, &temp))
+          m_station[i][FB_TEMPERATURE] = temp * 10;
+        if (Firebase.RTDB.getInt(&m_firebase_data, CENTER_HUMIDITY_RTDB, &humid))
+          m_station[i][FB_HUMIDITY] = humid;
+        if (Firebase.RTDB.getDouble(&m_firebase_data, CENTER_LATITUDE_RTDB, &lat))
+          m_station[i][FB_LATITUDE] = lat * 1E6;
+        if (Firebase.RTDB.getDouble(&m_firebase_data, CENTER_LONGITUDE_RTDB, &lon))
+          m_station[i][FB_LONGITUDE] = lon * 1E6;
+      }
+    }
     for (register uint8_t i = 0; i < m_total_stations; i++)
     {
       uint8_t __ison_aux = 0;

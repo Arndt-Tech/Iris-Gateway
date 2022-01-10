@@ -70,6 +70,7 @@ void com::Lora::opr::readPackage()
   uint8_t __latitude[4] = {0}, __longitude[4] = {0};
   uint8_t __sender = 0, __iterator = 0, __size_received = 0;
   int8_t __humidity = 0, __temperature[2] = {0};
+  uint8_t __valve_status_confirm = 0;
   for (register uint8_t i = 0; i < 4; i++)
     __receive_addr[i] = LoRa.read();
   for (register uint8_t i = 0; i < 4; i++)
@@ -88,6 +89,7 @@ void com::Lora::opr::readPackage()
   __humidity = LoRa.read();
   __temperature[0] = LoRa.read();
   __temperature[1] = LoRa.read();
+  __valve_status_confirm = LoRa.read();
   for (register uint8_t i = 0; i < 4; i++)
     __latitude[i] = LoRa.read();
   for (register uint8_t i = 0; i < 4; i++)
@@ -95,18 +97,19 @@ void com::Lora::opr::readPackage()
   __size_received = LoRa.read();
   if (__size_received != __identified_size)
     return;
-
+    
   package.rcv.m_sender_addr = spc::SpecialFunctions::asmAddr(__sender_addr);
   package.rcv.m_receiver_addr = spc::SpecialFunctions::asmAddr(__receive_addr);
   package.rcv.m_humidity = __humidity;
   package.rcv.m_temperature |= __temperature[0];
   package.rcv.m_temperature |= __temperature[1] << 8;
+  package.rcv.m_valveStatus = __valve_status_confirm;
   package.rcv.m_latitude = spc::SpecialFunctions::asmAddr(__latitude);
   package.rcv.m_longitude = spc::SpecialFunctions::asmAddr(__longitude);
   package.rcv.m_size = __size_received;
   package.rcv.m_signal = LoRa.packetRssi();
   package.rcv.m_iterator = __iterator;
-  
+
   organizeData();
 
   return;
@@ -191,6 +194,8 @@ int16_t aux::LoraPackage::receive::get::temperature() const { return rcv.m_tempe
 uint8_t aux::LoraPackage::receive::get::humidity() const { return rcv.m_humidity; }
 
 uint8_t aux::LoraPackage::receive::get::stationNumber() const { return rcv.m_iterator; }
+
+uint8_t aux::LoraPackage::receive::get::valve() const { return rcv.m_valveStatus; }
 
 int16_t aux::LoraPackage::receive::get::signal() const { return rcv.m_signal; }
 

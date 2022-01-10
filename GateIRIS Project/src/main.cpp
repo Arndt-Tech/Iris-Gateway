@@ -56,8 +56,10 @@ void loop()
   Serial.println("Sender: " + String(gateway.manage.LoRa().package.receive.get.senderAddress()));
   Serial.println("Recipient: " + String(gateway.manage.LoRa().package.receive.get.receiveAddress()));
   Serial.println("Station Number: " + String(gateway.manage.LoRa().package.receive.get.stationNumber()));
+  Serial.print("Valve status confirm: ");
+  Serial.println(gateway.manage.LoRa().package.send.get.valveStatus() == gateway.manage.LoRa().package.receive.get.valve() ? "Correct." : "Incorrect.");
   Serial.println("Humidity: " + String(gateway.manage.LoRa().package.receive.get.humidity()));
-  Serial.println("Temperature: " + String(gateway.manage.LoRa().package.receive.get.temperature() / 10));
+  Serial.println("Temperature: " + String(gateway.manage.LoRa().package.receive.get.temperature()));
   Serial.println("Latitude: " + String(gateway.manage.LoRa().package.receive.get.latitude() / (-1E6), 6));
   Serial.println("Longitude: " + String(gateway.manage.LoRa().package.receive.get.longitude() / (-1E6), 6));
   Serial.println("Package size: " + String(gateway.manage.LoRa().package.receive.get.size()) + " Bytes");
@@ -99,6 +101,6 @@ void loop()
   Serial.println("---------------------------------------------------");
   Serial.write('\n');
   vTaskDelay(5000);
-#elif
+#elif _DEBUG_MODE_
 #endif
 }
