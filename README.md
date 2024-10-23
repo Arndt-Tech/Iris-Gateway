@@ -1,18 +1,16 @@
-# GateIRIS 
-O GateIRIS é uma parte do projeto principal IRIS. Tem como principal função obter os dados enviados da estação via rede LoRa e envia-los ao servidor Firebase através da rede WiFi, servindo como "ponte" entre eles.
+# IRIS Gateway 
+IRIS Gateway é uma parte do projeto principal IRIS. Tem como principal função obter os dados enviados da estação via rede LoRa e envia-los ao servidor Firebase.
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
-### [GateIRIS](https://github.com/SI-ART/GateIRIS).
-### Desenvolvedor -> [Daniel Arndt](https://github.com/Chimeric-arch).
+### [IRIS Gateway](https://github.com/SI-ART/GateIRIS).
+### Desenvolvedor -> [Daniel Arndt](https://github.com/DanielArndt0).
 -------------------------------------------------------------------------------
 ### [IRIS Station](https://github.com/I-grow/Station_IRIS).
-### Desenvolvedor -> [Daniel Arndt](https://github.com/Chimeric-arch).
+### Desenvolvedor -> [Daniel Arndt](https://github.com/DanielArndt0).
 -------------------------------------------------------------------------------
-### [IRIS App](https://github.com/I-grow/App_IRIS).
-### Desenvolvedor -> [João Vitor](https://github.com/jajao1).
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+
+
 ##  ATUALIZAÇÕES
 
 - Adição do display OLED;
