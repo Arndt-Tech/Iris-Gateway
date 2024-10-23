@@ -2,11 +2,9 @@
 IRIS Gateway é uma parte do projeto principal IRIS. Tem como principal função obter os dados enviados da estação via rede LoRa e envia-los ao servidor Firebase.
 
 -------------------------------------------------------------------------------
--------------------------------------------------------------------------------
 ### [IRIS Gateway](https://github.com/SI-ART/GateIRIS).
-### Desenvolvedor -> [Daniel Arndt](https://github.com/DanielArndt0).
--------------------------------------------------------------------------------
 ### [IRIS Station](https://github.com/I-grow/Station_IRIS).
+
 ### Desenvolvedor -> [Daniel Arndt](https://github.com/DanielArndt0).
 -------------------------------------------------------------------------------
 
